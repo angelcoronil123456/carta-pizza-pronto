@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pizza Pronto – Carta Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #C8102E;
+    --red-dark: #9b0c22;
+    --red-light: #ff3d5a;
+    --cream: #FFF8F0;
+    --warm: #FFF0DC;
+    --green: #2E7D32;
+    --gold: #F4A01C;
+    --dark: #1a1208;
+    --text: #2d1f0e;
+    --text-soft: #6b5040;
+    --shadow: 0 8px 32px rgba(200,16,46,0.13);
+    --radius: 22px;
+    --radius-sm: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── SPLASH / MESA ─── */
+  #screen-mesa {
+    position: fixed; inset: 0; z-index: 100;
+    background: linear-gradient(160deg, #1a0a06 0%, #3b0f15 50%, #1a0a06 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px 24px; transition: opacity .5s, transform .5s;
+  }
+  #screen-mesa.hide { opacity: 0; transform: scale(1.05); pointer-events: none; }
+
+  .mesa-logo {
+    width: 110px; height: 110px; border-radius: 50%;
+    background: var(--red); display: flex; align-items: center; justify-content: center;
+    font-size: 54px; margin-bottom: 20px;
+    box-shadow: 0 0 60px rgba(200,16,46,.6);
+    animation: pulse-logo 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse-logo { 0%,100%{box-shadow:0 0 60px rgba(200,16,46,.5)} 50%{box-shadow:0 0 100px rgba(200,16,46,.9)} }
+
+  .mesa-title {
+    font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 900;
+    color: #fff; letter-spacing: -1px; text-align: center; line-height: 1.1;
+  }
+  .mesa-subtitle { color: #ff9999; font-size: 15px; margin: 8px 0 36px; text-align: center; letter-spacing: .5px; }
+
+  .mesa-card {
+    background: rgba(255,255,255,.07); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius);
+    padding: 28px 24px; width: 100%; max-width: 360px;
+  }
+  .mesa-card label { color: #ffddd0; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .mesa-input-wrap { display: flex; gap: 10px; margin-top: 12px; }
+  .mesa-input {
+    flex: 1; background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.2);
+    border-radius: var(--radius-sm); padding: 14px 18px; font-size: 28px; font-weight: 800;
+    color: #fff; text-align: center; outline: none; font-family: 'Nunito', sans-serif;
+    transition: border-color .2s, background .2s;
+  }
+  .mesa-input::placeholder { color: rgba(255,255,255,.3); font-size: 18px; }
+  .mesa-input:focus { border-color: var(--gold); background: rgba(255,255,255,.15); }
+
+  .btn-entrar {
+    width: 100%; margin-top: 20px; padding: 16px; border: none; border-radius: var(--radius-sm);
+    background: var(--red); color: #fff; font-size: 17px; font-weight: 800; cursor: pointer;
+    letter-spacing: .5px; transition: background .2s, transform .1s, box-shadow .2s;
+    box-shadow: 0 4px 20px rgba(200,16,46,.5);
+  }
+  .btn-entrar:hover { background: var(--red-light); box-shadow: 0 6px 28px rgba(200,16,46,.7); }
+  .btn-entrar:active { transform: scale(.97); }
+
+  .mesa-note { color: rgba(255,255,255,.35); font-size: 12px; text-align: center; margin-top: 16px; }
+
+  /* ─── MAIN APP ─── */
+  #app { opacity: 0; transition: opacity .5s; }
+  #app.visible { opacity: 1; }
+
+  /* Header */
+  .app-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,248,240,.92); backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(200,16,46,.1);
+    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 20px rgba(0,0,0,.06);
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-logo { width: 42px; height: 42px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .header-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--red); }
+  .header-mesa { font-size: 12px; color: var(--text-soft); font-weight: 600; }
+
+  .cart-btn {
+    position: relative; background: var(--red); border: none; border-radius: 50px;
+    padding: 10px 18px; display: flex; align-items: center; gap: 8px;
+    color: #fff; font-size: 14px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(200,16,46,.35); transition: background .2s, transform .1s;
+  }
+  .cart-btn:active { transform: scale(.95); }
+  .cart-count {
+    position: absolute; top: -6px; right: -6px;
+    background: var(--gold); color: var(--dark); font-size: 11px; font-weight: 900;
+    width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--cream); transform: scale(0); transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .cart-count.show { transform: scale(1); }
+
+  /* Recommendations banner */
+  .promo-banner {
+    margin: 16px 16px 0;
+    background: linear-gradient(135deg, #1a0a06, #3b0f15);
+    border-radius: var(--radius); padding: 20px; overflow: hidden; position: relative;
+    animation: fadeSlideUp .6s ease both;
+  }
+  .promo-banner::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,16,46,.4), transparent 70%);
+  }
+  .promo-tag { background: var(--gold); color: var(--dark); font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; margin-bottom: 10px; }
+  .promo-title { color: #fff; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; line-height: 1.2; }
+  .promo-desc { color: rgba(255,255,255,.7); font-size: 13px; margin-top: 6px; line-height: 1.4; }
+  .promo-items { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .promo-chip {
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    color: #fff; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px;
+    display: flex; align-items: center; gap: 5px; cursor: pointer; transition: background .2s;
+  }
+  .promo-chip:hover { background: rgba(255,255,255,.22); }
+  .fire { animation: flicker .8s ease-in-out infinite alternate; }
+  @keyframes flicker { from{opacity:.8} to{opacity:1} }
+
+  /* Category nav */
+  .cat-nav-wrap {
+    position: sticky; top: 66px; z-index: 40;
+    background: rgba(255,248,240,.95); backdrop-filter: blur(10px);
+    padding: 10px 0; margin-top: 16px;
+    border-bottom: 1px solid rgba(200,16,46,.08);
+  }
+  .cat-nav {
+    display: flex; gap: 8px; overflow-x: auto; padding: 0 16px;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .cat-nav::-webkit-scrollbar { display: none; }
+  .cat-btn {
+    flex-shrink: 0; border: 2px solid transparent; border-radius: 50px;
+    padding: 7px 16px; font-size: 13px; font-weight: 800; cursor: pointer;
+    background: rgba(200,16,46,.06); color: var(--text-soft); transition: all .2s;
+    white-space: nowrap;
+  }
+  .cat-btn.active { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 3px 12px rgba(200,16,46,.3); }
+
+  /* Section */
+  .section { padding: 0 16px; margin-top: 24px; animation: fadeSlideUp .4s ease both; }
+  @keyframes fadeSlideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--text);
+    padding-bottom: 10px; border-bottom: 3px solid var(--red); display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-emoji { font-size: 24px; }
+
+  /* Grid 2 col */
+  .dish-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* Dish card */
+  .dish-card {
+    background: #fff; border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,.07); transition: transform .25s, box-shadow .25s;
+    position: relative; display: flex; flex-direction: column;
+  }
+  .dish-card:hover { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0,0,0,.12); }
+
+  .dish-img-wrap { position: relative; aspect-ratio: 4/3; overflow: hidden; }
+  .dish-img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+  .dish-card:hover .dish-img { transform: scale(1.06); }
+
+  .video-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.2); border-radius: 20px;
+    color: #fff; font-size: 9px; font-weight: 800; padding: 4px 8px;
+    display: flex; align-items: center; gap: 4px; cursor: pointer;
+    letter-spacing: .3px; transition: background .2s;
+  }
+  .video-btn:hover { background: rgba(200,16,46,.8); }
+  .video-btn svg { width: 10px; height: 10px; fill: #fff; }
+
+  .dish-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: var(--gold); color: var(--dark); font-size: 9px; font-weight: 900;
+    padding: 3px 8px; border-radius: 20px; letter-spacing: .5px; text-transform: uppercase;
+  }
+  .badge-new { background: #2E7D32; color: #fff; }
+  .badge-hot { background: var(--red); color: #fff; }
+
+  .dish-body { padding: 12px; flex: 1; display: flex; flex-direction: column; }
+  .dish-name { font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.3; margin-bottom: 4px; }
+  .dish-desc { font-size: 11px; color: var(--text-soft); line-height: 1.4; flex: 1; }
+
+  .allergens { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 6px; }
+  .allergen { font-size: 13px; cursor: default; }
+  .allergen[title] { position: relative; }
+
+  .dish-ask {
+    font-size: 10px; color: var(--red); font-weight: 700;
+    margin-top: 6px; cursor: pointer; transition: opacity .2s;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .dish-ask:hover { opacity: .7; }
+
+  .dish-footer { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 12px; }
+  .dish-price { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 900; color: var(--red); }
+
+  .add-btn {
+    background: var(--red); border: none; border-radius: 50px;
+    color: #fff; font-size: 11px; font-weight: 800; padding: 7px 14px;
+    cursor: pointer; transition: background .2s, transform .1s, box-shadow .2s;
+    box-shadow: 0 3px 10px rgba(200,16,46,.3);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .add-btn:hover { background: var(--red-dark); box-shadow: 0 5px 16px rgba(200,16,46,.5); }
+  .add-btn:active { transform: scale(.93); }
+
+  /* Added animation */
+  @keyframes bounce-add {
+    0%{transform:scale(1)} 30%{transform:scale(.88)} 60%{transform:scale(1.18)} 80%{transform:scale(.97)} 100%{transform:scale(1)}
+  }
+  .add-btn.bounce { animation: bounce-add .4s ease; }
+
+  /* Bottom padding */
+  .bottom-pad { height: 100px; }
+
+  /* ─── CART DRAWER ─── */
+  .cart-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200;
+    opacity: 0; pointer-events: none; transition: opacity .3s; backdrop-filter: blur(3px);
+  }
+  .cart-overlay.open { opacity: 1; pointer-events: all; }
+
+  .cart-drawer {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
+    background: #fff; border-radius: 28px 28px 0 0;
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.32,.72,0,1);
+    max-height: 85vh; display: flex; flex-direction: column;
+    box-shadow: 0 -10px 60px rgba(0,0,0,.2);
+  }
+  .cart-drawer.open { transform: translateY(0); }
+
+  .cart-handle { width: 40px; height: 4px; border-radius: 2px; background: #ddd; margin: 12px auto 0; }
+  .cart-head { padding: 16px 20px; border-bottom: 1px solid #f0e8e0; display: flex; align-items: center; justify-content: space-between; }
+  .cart-head-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; }
+  .cart-mesa-tag { background: rgba(200,16,46,.1); color: var(--red); font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px; }
+  .close-cart { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-soft); line-height: 1; }
+
+  .cart-items { flex: 1; overflow-y: auto; padding: 12px 20px; }
+  .cart-empty { text-align: center; padding: 48px 0; color: var(--text-soft); }
+  .cart-empty-icon { font-size: 54px; display: block; margin-bottom: 12px; }
+
+  .cart-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f5eee6; }
+  .cart-item-img { width: 56px; height: 56px; border-radius: var(--radius-sm); object-fit: cover; }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-size: 14px; font-weight: 800; color: var(--text); }
+  .cart-item-price { font-size: 13px; color: var(--red); font-weight: 700; margin-top: 2px; }
+
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-btn {
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid;
+    font-size: 16px; font-weight: 900; cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .qty-minus { border-color: #e0d5ca; color: var(--text-soft); background: #faf6f1; }
+  .qty-minus:hover { border-color: var(--red); color: var(--red); background: rgba(200,16,46,.06); }
+  .qty-plus { border-color: var(--red); color: var(--red); background: rgba(200,16,46,.06); }
+  .qty-plus:hover { background: var(--red); color: #fff; }
+  .qty-num { font-size: 15px; font-weight: 900; min-width: 22px; text-align: center; }
+
+  .cart-footer { padding: 16px 20px; border-top: 1px solid #f0e8e0; }
+  .cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .cart-total-label { font-size: 16px; font-weight: 700; color: var(--text-soft); }
+  .cart-total-val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--red); }
+
+  .btn-pedir {
+    width: 100%; padding: 17px; background: var(--red); border: none; border-radius: var(--radius-sm);
+    color: #fff; font-size: 17px; font-weight: 900; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(200,16,46,.4); transition: background .2s, box-shadow .2s;
+    letter-spacing: .3px;
+  }
+  .btn-pedir:hover { background: var(--red-dark); box-shadow: 0 8px 32px rgba(200,16,46,.55); }
+  .btn-pedir:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--dark); color: #fff; font-size: 13px; font-weight: 700;
+    padding: 10px 20px; border-radius: 50px; z-index: 300;
+    opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none;
+    white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.3);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Video modal placeholder */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 400;
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--dark); border-radius: var(--radius); padding: 28px; width: 100%; max-width: 360px;
+    text-align: center; color: #fff;
+  }
+  .modal-icon { font-size: 56px; margin-bottom: 12px; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+  .modal-desc { color: rgba(255,255,255,.6); font-size: 14px; line-height: 1.5; }
+  .modal-close { margin-top: 20px; background: var(--red); border: none; border-radius: var(--radius-sm); color: #fff; font-size: 14px; font-weight: 800; padding: 12px 28px; cursor: pointer; }
+
+  /* Confirm order modal */
+  .confirm-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 500;
+    display: none; align-items: flex-end; padding: 0;
+  }
+  .confirm-modal.open { display: flex; }
+  .confirm-box {
+    background: #fff; border-radius: 28px 28px 0 0; padding: 28px 24px;
+    width: 100%; animation: slideUp .3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .confirm-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; margin-bottom: 6px; }
+  .confirm-sub { color: var(--text-soft); font-size: 14px; margin-bottom: 20px; }
+  .confirm-summary { background: var(--warm); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; }
+  .confirm-row { display: flex; justify-content: space-between; font-size: 14px; padding: 3px 0; }
+  .confirm-row.total { font-weight: 900; font-size: 16px; border-top: 1px solid #e0d5c5; margin-top: 8px; padding-top: 10px; color: var(--red); }
+  .confirm-btns { display: flex; gap: 10px; }
+  .btn-cancel { flex: 1; padding: 14px; background: #f0e8e0; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 800; cursor: pointer; color: var(--text-soft); }
+  .btn-confirm { flex: 2; padding: 14px; background: var(--green); border: none; border-radius: var(--radius-sm); color: #fff; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 16px rgba(46,125,50,.3); }
+
+  /* Ask modal */
+  .ask-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 600;
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .ask-modal.open { display: flex; }
+  .ask-box { background: #fff; border-radius: var(--radius); padding: 24px; width: 100%; max-width: 360px; }
+  .ask-dish-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+  .ask-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .ask-chip { background: rgba(200,16,46,.08); border: 1.5px solid rgba(200,16,46,.2); border-radius: 50px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: var(--red); cursor: pointer; transition: all .15s; }
+  .ask-chip:hover { background: var(--red); color: #fff; }
+  .ask-desc { color: var(--text-soft); font-size: 13px; line-height: 1.5; }
+  .ask-close { margin-top: 16px; background: var(--red); border: none; border-radius: var(--radius-sm); color: #fff; font-size: 14px; font-weight: 800; padding: 12px 28px; cursor: pointer; width: 100%; }
+
+  @media (max-width: 380px) {
+    .mesa-title { font-size: 34px; }
+    .dish-name { font-size: 12px; }
+    .dish-desc { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── PANTALLA MESA ─── -->
+<div id="screen-mesa">
+  <div class="mesa-logo">🍕</div>
+  <h1 class="mesa-title">Pizza Pronto</h1>
+  <p class="mesa-subtitle">Autentica pizza italiana · Hecho con amor</p>
+  <div class="mesa-card">
+    <label>¿En qué mesa estás?</label>
+    <div class="mesa-input-wrap">
+      <input class="mesa-input" id="mesa-input" type="number" min="1" max="99" placeholder="Nº" maxlength="2" inputmode="numeric">
+    </div>
+    <button class="btn-entrar" onclick="entrar()">Ver la Carta →</button>
+    <p class="mesa-note">Introduce tu número de mesa para comenzar</p>
+  </div>
+</div>
+
+<!-- ─── APP PRINCIPAL ─── -->
+<div id="app">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="header-logo">🍕</div>
+      <div>
+        <div class="header-name">Pizza Pronto</div>
+        <div class="header-mesa" id="header-mesa-txt">Mesa —</div>
+      </div>
+    </div>
+    <button class="cart-btn" onclick="toggleCart()">
+      🛒 Carrito
+      <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </header>
+
+  <!-- Promo banner -->
+  <div class="promo-banner">
+    <span class="promo-tag">🔥 Esta semana</span>
+    <div class="promo-title">Más Pedidos del Local</div>
+    <div class="promo-desc">Lo que no puedes perderte hoy. Nuestros clientes ya lo eligieron.</div>
+    <div class="promo-items">
+      <div class="promo-chip" onclick="scrollToItem('pizza-diavola')">🍕 Diavola <span class="fire">🌶️</span></div>
+      <div class="promo-chip" onclick="scrollToItem('pizza-4quesos')">🧀 4 Quesos</div>
+      <div class="promo-chip" onclick="scrollToItem('tiramisú')">🍮 Tiramisú</div>
+    </div>
+  </div>
+
+  <!-- Category nav -->
+  <div class="cat-nav-wrap">
+    <nav class="cat-nav" id="cat-nav">
+      <button class="cat-btn active" onclick="scrollToSection('entrantes')">🥗 Entrantes</button>
+      <button class="cat-btn" onclick="scrollToSection('pizzas')">🍕 Pizzas</button>
+      <button class="cat-btn" onclick="scrollToSection('pastas')">🍝 Pastas</button>
+      <button class="cat-btn" onclick="scrollToSection('ensaladas')">🥬 Ensaladas</button>
+      <button class="cat-btn" onclick="scrollToSection('postres')">🍮 Postres</button>
+      <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
+    </nav>
+  </div>
+
+  <!-- ─── ENTRANTES ─── -->
+  <div class="section" id="sec-entrantes">
+    <h2 class="section-title"><span class="section-emoji">🥗</span> Entrantes</h2>
+    <div class="dish-grid" id="grid-entrantes"></div>
+  </div>
+
+  <!-- ─── PIZZAS ─── -->
+  <div class="section" id="sec-pizzas">
+    <h2 class="section-title"><span class="section-emoji">🍕</span> Pizzas</h2>
+    <div class="dish-grid" id="grid-pizzas"></div>
+  </div>
+
+  <!-- ─── PASTAS ─── -->
+  <div class="section" id="sec-pastas">
+    <h2 class="section-title"><span class="section-emoji">🍝</span> Pastas</h2>
+    <div class="dish-grid" id="grid-pastas"></div>
+  </div>
+
+  <!-- ─── ENSALADAS ─── -->
+  <div class="section" id="sec-ensaladas">
+    <h2 class="section-title"><span class="section-emoji">🥬</span> Ensaladas</h2>
+    <div class="dish-grid" id="grid-ensaladas"></div>
+  </div>
+
+  <!-- ─── POSTRES ─── -->
+  <div class="section" id="sec-postres">
+    <h2 class="section-title"><span class="section-emoji">🍮</span> Postres</h2>
+    <div class="dish-grid" id="grid-postres"></div>
+  </div>
+
+  <!-- ─── BEBIDAS ─── -->
+  <div class="section" id="sec-bebidas">
+    <h2 class="section-title"><span class="section-emoji">🥤</span> Bebidas</h2>
+    <div class="dish-grid" id="grid-bebidas"></div>
+  </div>
+
+  <div class="bottom-pad"></div>
+</div>
+
+<!-- ─── CART DRAWER ─── -->
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-handle"></div>
+  <div class="cart-head">
+    <span class="cart-head-title">Tu Pedido</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="cart-mesa-tag" id="cart-mesa-tag">Mesa —</span>
+      <button class="close-cart" onclick="toggleCart()">×</button>
+    </div>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span class="cart-total-label">Total del pedido</span>
+      <span class="cart-total-val" id="cart-total">0,00 €</span>
+    </div>
+    <button class="btn-pedir" id="btn-pedir" onclick="confirmarPedido()" disabled>Pedir ahora ✓</button>
+  </div>
+</div>
+
+<!-- Video modal -->
+<div class="modal-overlay" id="video-modal">
+  <div class="modal-box">
+    <div class="modal-icon">🎬</div>
+    <div class="modal-title" id="video-modal-title">Vídeo del plato</div>
+    <div class="modal-desc">El vídeo de este plato estará disponible muy pronto. ¡Pronto podrás ver cómo lo preparamos con amor en nuestra cocina!</div>
+    <button class="modal-close" onclick="document.getElementById('video-modal').classList.remove('open')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Ask modal -->
+<div class="ask-modal" id="ask-modal">
+  <div class="ask-box">
+    <div class="ask-dish-name" id="ask-dish-name"></div>
+    <div class="ask-desc">¿Tienes alguna duda o petición especial sobre este plato? Aquí tienes las consultas más comunes:</div>
+    <div class="ask-chips">
+      <div class="ask-chip">¿Lleva gluten?</div>
+      <div class="ask-chip">¿Apto para veganos?</div>
+      <div class="ask-chip">¿Sin lactosa?</div>
+      <div class="ask-chip">¿Picante?</div>
+      <div class="ask-chip">¿Tamaño extra?</div>
+      <div class="ask-chip">Sin ingrediente</div>
+    </div>
+    <div class="ask-desc" style="color:var(--red);font-weight:700">Comunica tu petición al camarero o en las notas del pedido.</div>
+    <button class="ask-close" onclick="document.getElementById('ask-modal').classList.remove('open')">Entendido</button>
+  </div>
+</div>
+
+<!-- Confirm order modal -->
+<div class="confirm-modal" id="confirm-modal">
+  <div class="confirm-box">
+    <div class="confirm-title">¿Confirmamos el pedido?</div>
+    <div class="confirm-sub" id="confirm-mesa-txt"></div>
+    <div class="confirm-summary" id="confirm-summary"></div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="document.getElementById('confirm-modal').classList.remove('open')">Volver</button>
+      <button class="btn-confirm" onclick="enviarPedido()">✓ Enviar pedido</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const MENU = {
+  entrantes: [
+    { id:'bruschetta', name:'Bruschetta al Pomodoro', desc:'Pan tostado con tomate fresco, ajo, albahaca y aceite de oliva virgen extra', price:6.50, badge:'bestseller', allergens:['🌾','🧄'], img:'https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?w=400&q=80' },
+    { id:'burrata', name:'Burrata Fresca', desc:'Burrata cremosa con tomates cherry, pesto genovés y reducción de balsámico', price:9.90, badge:'new', allergens:['🥛','🌰'], img:'https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=400&q=80' },
+    { id:'calamares', name:'Calamari Fritti', desc:'Calamares crujientes fritos con limón, mayonesa de ajo y salsa picante', price:8.50, allergens:['🦐','🌾','🥚'], img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80' },
+    { id:'panzanella', name:'Antipasto Misto', desc:'Selección de embutidos italianos: mortadela, prosciutto, salami y quesos curados', price:11.90, allergens:['🥛','🌾'], img:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80' },
+  ],
+  pizzas: [
+    { id:'pizza-margherita', name:'Margherita', desc:'Salsa de tomate San Marzano, mozzarella fior di latte y albahaca fresca', price:10.90, allergens:['🌾','🥛'], img:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&q=80' },
+    { id:'pizza-diavola', name:'Diavola 🌶️', desc:'Salsa de tomate, mozzarella, salami picante y guindilla. La más pedida de la casa', price:13.50, badge:'hot', allergens:['🌾','🥛'], img:'https://images.unsplash.com/photo-1555072956-7758afb20e8f?w=400&q=80' },
+    { id:'pizza-4quesos', name:'Quattro Formaggi', desc:'Mozzarella, gorgonzola, parmigiano reggiano y taleggio sobre base blanca', price:14.50, allergens:['🌾','🥛'], img:'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&q=80' },
+    { id:'pizza-prosciutto', name:'Prosciutto e Funghi', desc:'Jamón serrano, champiñones salteados, mozzarella y aceite de trufa', price:14.90, allergens:['🌾','🥛'], img:'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400&q=80' },
+    { id:'pizza-veggie', name:'Ortolana Vegetal', desc:'Pimientos asados, calabacín, berenjena, espinacas, cherry y mozzarella', price:12.90, allergens:['🌾','🥛'], img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80' },
+    { id:'pizza-pollo', name:'Pollo BBQ', desc:'Pollo a la brasa, salsa BBQ casera, cebolla caramelizada y rúcula fresca', price:13.90, badge:'new', allergens:['🌾','🥛','🥚'], img:'https://images.unsplash.com/photo-1528137871618-79d2761e3fd5?w=400&q=80' },
+  ],
+  pastas: [
+    { id:'pasta-carbonara', name:'Spaghetti Carbonara', desc:'Spaghetti con guanciale, huevo, parmigiano y pimienta negra. Receta tradicional romana', price:12.90, allergens:['🌾','🥚','🥛'], img:'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&q=80' },
+    { id:'pasta-bolognesa', name:'Tagliatelle Bolognese', desc:'Carne de ternera y cerdo estofada 4 horas con verduras, vino tinto y especias', price:13.50, allergens:['🌾','🥛'], img:'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&q=80' },
+    { id:'pasta-pesto', name:'Penne al Pesto', desc:'Penne rigate con pesto genovés fresco, piñones tostados y parmigiano', price:11.90, allergens:['🌾','🌰','🥛'], img:'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400&q=80' },
+    { id:'pasta-arrabbiata', name:'Penne all\'Arrabbiata', desc:'Penne con salsa de tomate picante, guindilla, ajo y perejil fresco', price:11.50, allergens:['🌾'], img:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400&q=80' },
+  ],
+  ensaladas: [
+    { id:'ensalada-cesar', name:'Ensalada César', desc:'Romana, pollo a la plancha, parmigiano, croutones y aderezo César casero', price:10.90, allergens:['🥚','🌾','🐟','🥛'], img:'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&q=80' },
+    { id:'ensalada-caprese', name:'Caprese Italiana', desc:'Mozzarella di bufala, tomate de rama, albahaca y aceite de oliva extra virgen', price:9.90, allergens:['🥛'], img:'https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5?w=400&q=80' },
+  ],
+  postres: [
+    { id:'tiramisú', name:'Tiramisú Casero', desc:'Bizcochos de soletilla, mascarpone, café espresso, cacao y marsala. Receta de la nonna', price:6.90, badge:'bestseller', allergens:['🥚','🌾','🥛'], img:'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&q=80' },
+    { id:'pannacotta', name:'Panna Cotta', desc:'Crema italiana con coulis de frutos rojos y menta fresca. Suave y delicada', price:5.90, allergens:['🥛'], img:'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=80' },
+    { id:'gelato', name:'Gelato Artesanal', desc:'2 bolas a elegir: pistacho, stracciatella, tiramisú, fresa o vainilla de Madagascar', price:4.90, allergens:['🥛','🌰'], img:'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&q=80' },
+    { id:'brownie', name:'Brownie al Cioccolato', desc:'Brownie templado de chocolate negro con helado de vainilla y caramelo salado', price:6.50, allergens:['🌾','🥚','🥛'], img:'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400&q=80' },
+  ],
+  bebidas: [
+    { id:'refresco', name:'Refrescos', desc:'Coca-Cola, Fanta naranja/limón, Sprite, agua con/sin gas (33cl)', price:2.90, allergens:[], img:'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=400&q=80' },
+    { id:'cerveza', name:'Cerveza Italiana', desc:'Peroni, Moretti o Menabrea en botella 33cl. Rubia lager fresquita', price:3.50, allergens:['🌾'], img:'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&q=80' },
+    { id:'vino', name:'Vino de la Casa', desc:'Blanco Pinot Grigio o Tinto Chianti. Copa o media botella. Selección del sommelier', price:4.50, allergens:['🍇'], img:'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&q=80' },
+    { id:'cafe', name:'Café & Espresso', desc:'Espresso, cappuccino, americano o café con leche. Granos 100% arábica italianos', price:2.20, allergens:['🥛'], img:'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&q=80' },
+  ],
+};
+
+const BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
+const BADGE_CLASSES = { bestseller:'', new:'badge-new', hot:'badge-hot' };
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let mesa = '';
+let cart = {};
+
+// ─── MESA ──────────────────────────────────────────────────────────────────
+function entrar() {
+  const val = document.getElementById('mesa-input').value.trim();
+  if (!val || val < 1) { showToast('Por favor, introduce el número de mesa'); return; }
+  mesa = val;
+  document.getElementById('header-mesa-txt').textContent = 'Mesa ' + mesa;
+  document.getElementById('cart-mesa-tag').textContent = 'Mesa ' + mesa;
+  document.getElementById('confirm-mesa-txt').textContent = 'Pedido para la Mesa ' + mesa;
+  document.getElementById('screen-mesa').classList.add('hide');
+  const app = document.getElementById('app');
+  app.classList.add('visible');
+  buildMenu();
+}
+
+document.getElementById('mesa-input').addEventListener('keydown', e => { if(e.key==='Enter') entrar(); });
+
+// ─── BUILD MENU ─────────────────────────────────────────────────────────────
+function buildMenu() {
+  Object.entries(MENU).forEach(([cat, items]) => {
+    const grid = document.getElementById('grid-' + cat);
+    if (!grid) return;
+    items.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'dish-card';
+      card.id = 'card-' + item.id;
+      card.style.animationDelay = (i * 0.07) + 's';
+      card.innerHTML = `
+        <div class="dish-img-wrap">
+          <img class="dish-img" src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+          ${item.badge ? `<div class="dish-badge ${BADGE_CLASSES[item.badge]}">${BADGE_LABELS[item.badge]}</div>` : ''}
+          <div class="video-btn" onclick="showVideo('${item.name}')">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            Ver vídeo
+          </div>
+        </div>
+        <div class="dish-body">
+          <div class="dish-name">${item.name}</div>
+          <div class="dish-desc">${item.desc}</div>
+          ${item.allergens.length ? `<div class="allergens">${item.allergens.map(a=>`<span class="allergen" title="${allergenLabel(a)}">${a}</span>`).join('')}</div>` : ''}
+          <div class="dish-ask" onclick="showAsk('${item.name}')">💬 ¿Tienes alguna duda sobre este plato?</div>
+        </div>
+        <div class="dish-footer">
+          <span class="dish-price">${item.price.toFixed(2).replace('.',',')} €</span>
+          <button class="add-btn" id="btn-${item.id}" onclick="addToCart('${item.id}')">
+            <span>+</span> Añadir
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  });
+}
+
+function allergenLabel(emoji) {
+  const map = {'🌾':'Gluten','🥛':'Lácteos','🥚':'Huevo','🌰':'Frutos secos','🐟':'Pescado','🦐':'Crustáceos','🍇':'Sulfitos','🧄':'Ajos'};
+  return map[emoji] || 'Alérgeno';
+}
+
+// ─── CART ──────────────────────────────────────────────────────────────────
+function findItem(id) {
+  for (const items of Object.values(MENU)) {
+    const found = items.find(i => i.id === id);
+    if (found) return found;
+  }
+}
+
+function addToCart(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  updateCartUI();
+  const btn = document.getElementById('btn-' + id);
+  if (btn) { btn.classList.remove('bounce'); void btn.offsetWidth; btn.classList.add('bounce'); }
+  const item = findItem(id);
+  showToast('✓ ' + item.name + ' añadido');
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  updateCartUI();
+  renderCartItems();
+}
+
+function updateCartUI() {
+  const total = Object.values(cart).reduce((a,b) => a+b, 0);
+  const countEl = document.getElementById('cart-count');
+  countEl.textContent = total;
+  countEl.classList.toggle('show', total > 0);
+  document.getElementById('btn-pedir').disabled = total === 0;
+  renderCartTotal();
+}
+
+function renderCartItems() {
+  const el = document.getElementById('cart-items');
+  const keys = Object.keys(cart);
+  if (!keys.length) {
+    el.innerHTML = `<div class="cart-empty"><span class="cart-empty-icon">🛒</span>Tu carrito está vacío.<br>¡Elige tus platos favoritos!</div>`;
+    return;
+  }
+  el.innerHTML = keys.map(id => {
+    const item = findItem(id);
+    const qty = cart[id];
+    return `
+      <div class="cart-item">
+        <img class="cart-item-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${(item.price * qty).toFixed(2).replace('.',',')} €</div>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn qty-minus" onclick="changeQty('${id}',-1)">−</button>
+          <span class="qty-num">${qty}</span>
+          <button class="qty-btn qty-plus" onclick="changeQty('${id}',1)">+</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCartTotal() {
+  let total = 0;
+  Object.keys(cart).forEach(id => { total += findItem(id).price * cart[id]; });
+  document.getElementById('cart-total').textContent = total.toFixed(2).replace('.',',') + ' €';
+}
+
+function toggleCart() {
+  const drawer = document.getElementById('cart-drawer');
+  const overlay = document.getElementById('cart-overlay');
+  const open = drawer.classList.toggle('open');
+  overlay.classList.toggle('open', open);
+  if (open) renderCartItems();
+}
+
+// ─── CONFIRM ORDER ─────────────────────────────────────────────────────────
+function confirmarPedido() {
+  toggleCart();
+  const summary = document.getElementById('confirm-summary');
+  let rows = '';
+  let total = 0;
+  Object.keys(cart).forEach(id => {
+    const item = findItem(id); const qty = cart[id]; const sub = item.price * qty;
+    rows += `<div class="confirm-row"><span>${qty}× ${item.name}</span><span>${sub.toFixed(2).replace('.',',')} €</span></div>`;
+    total += sub;
+  });
+  rows += `<div class="confirm-row total"><span>Total</span><span>${total.toFixed(2).replace('.',',')} €</span></div>`;
+  summary.innerHTML = rows;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+
+function enviarPedido() {
+  document.getElementById('confirm-modal').classList.remove('open');
+  cart = {};
+  updateCartUI();
+  renderCartItems();
+  showToast('🎉 ¡Pedido enviado a cocina! Gracias');
+  setTimeout(() => showToast('👨‍🍳 Tu pedido llegará pronto, Mesa ' + mesa), 2500);
+}
+
+// ─── NAVIGATION ────────────────────────────────────────────────────────────
+function scrollToSection(id) {
+  const el = document.getElementById('sec-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.cat-btn').forEach((b,i) => {
+    const cats = ['entrantes','pizzas','pastas','ensaladas','postres','bebidas'];
+    b.classList.toggle('active', cats[i] === id);
+  });
+}
+
+function scrollToItem(id) {
+  const el = document.getElementById('card-' + id);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.outline = '3px solid var(--gold)'; setTimeout(()=>el.style.outline='',1500); }
+}
+
+// ─── MODALS ────────────────────────────────────────────────────────────────
+function showVideo(name) {
+  document.getElementById('video-modal-title').textContent = 'Vídeo: ' + name;
+  document.getElementById('video-modal').classList.add('open');
+}
+
+function showAsk(name) {
+  document.getElementById('ask-dish-name').textContent = name;
+  document.getElementById('ask-modal').classList.add('open');
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ─── INTERSECTION OBSERVER (active category) ───────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const cats = ['entrantes','pizzas','pastas','ensaladas','postres','bebidas'];
+  const btns = document.querySelectorAll('.cat-btn');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id.replace('sec-','');
+        const idx = cats.indexOf(id);
+        if (idx >= 0) btns.forEach((b,i) => b.classList.toggle('active', i===idx));
+      }
+    });
+  }, { threshold: .2, rootMargin: '-100px 0px -60% 0px' });
+  cats.forEach(c => { const el = document.getElementById('sec-'+c); if(el) observer.observe(el); });
+});
+</script>
+</body>
+</html>
