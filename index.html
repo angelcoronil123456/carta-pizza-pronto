@@ -485,24 +485,69 @@
   .btn-custom-cancel { flex: 1; padding: 13px; background: #f0e8e0; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 800; cursor: pointer; color: var(--text-soft); }
   .btn-custom-add { flex: 2; padding: 13px; background: var(--red); border: none; border-radius: var(--radius-sm); color: #fff; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 16px rgba(200,16,46,.3); }
 
-  /* ─── UPSELL SUGGESTION (sutil, dentro del confirm modal) ─── */
-  .upsell-card {
-    background: linear-gradient(135deg, #fff8f0, #fff0dc);
-    border: 1.5px solid rgba(244,160,28,.3); border-radius: var(--radius-sm);
-    padding: 12px 14px; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 12px;
+  /* ─── UPSELL OVERLAY ─── */
+  .upsell-overlay {
+    position: fixed; inset: 0; z-index: 800;
+    display: none; flex-direction: column; justify-content: flex-end;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
   }
-  .upsell-img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
-  .upsell-info { flex: 1; }
-  .upsell-tag { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; color: var(--gold); }
-  .upsell-name { font-size: 13px; font-weight: 800; color: var(--text); margin-top: 1px; }
-  .upsell-price { font-size: 12px; color: var(--text-soft); }
-  .upsell-add-btn {
-    background: var(--gold); border: none; border-radius: 50px; color: var(--dark);
-    font-size: 12px; font-weight: 900; padding: 7px 13px; cursor: pointer;
-    flex-shrink: 0; transition: background .15s;
+  .upsell-overlay.open { display: flex; }
+  .upsell-sheet {
+    background: #fff; border-radius: 28px 28px 0 0;
+    padding: 0 0 28px; animation: slideUp .35s cubic-bezier(.32,.72,0,1);
+    max-height: 85vh; overflow: hidden;
   }
-  .upsell-add-btn:hover { background: #e09010; }
+  .upsell-sheet-top {
+    background: linear-gradient(135deg, #1a0a06, #3b0f15);
+    padding: 20px 20px 16px; border-radius: 28px 28px 0 0;
+    position: relative;
+  }
+  .upsell-sheet-tag {
+    background: var(--gold); color: var(--dark); font-size: 10px; font-weight: 900;
+    padding: 3px 10px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase;
+    display: inline-block; margin-bottom: 8px;
+  }
+  .upsell-sheet-title {
+    font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900;
+    color: #fff; line-height: 1.2;
+  }
+  .upsell-sheet-sub { color: rgba(255,255,255,.6); font-size: 13px; margin-top: 4px; }
+  .upsell-skip-top {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.25);
+    color: #fff; font-size: 13px; font-weight: 800; padding: 6px 14px;
+    border-radius: 50px; cursor: pointer; font-family: 'Nunito', sans-serif;
+  }
+  .upsell-cards-wrap {
+    display: flex; gap: 14px; overflow-x: auto; padding: 18px 20px 4px;
+    scrollbar-width: none; -ms-overflow-style: none;
+    scroll-snap-type: x mandatory;
+  }
+  .upsell-cards-wrap::-webkit-scrollbar { display: none; }
+  .upsell-item-card {
+    flex-shrink: 0; width: 200px; border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0,0,0,.12); scroll-snap-align: start;
+    background: #fff; border: 1.5px solid #f0e8e0;
+  }
+  .upsell-item-img { width: 100%; height: 130px; object-fit: cover; display: block; }
+  .upsell-item-body { padding: 10px 12px 12px; }
+  .upsell-item-name { font-size: 14px; font-weight: 900; color: var(--text); margin-bottom: 2px; }
+  .upsell-item-desc { font-size: 11px; color: var(--text-soft); line-height: 1.4; margin-bottom: 8px; }
+  .upsell-item-foot { display: flex; align-items: center; justify-content: space-between; }
+  .upsell-item-price { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 900; color: var(--red); }
+  .upsell-item-btn {
+    background: var(--red); border: none; border-radius: 50px; color: #fff;
+    font-size: 12px; font-weight: 900; padding: 6px 14px; cursor: pointer;
+    transition: background .15s; box-shadow: 0 3px 10px rgba(200,16,46,.3);
+  }
+  .upsell-item-btn:hover { background: var(--red-dark); }
+  .upsell-item-btn.added { background: var(--green); }
+  .upsell-confirm-wrap { padding: 14px 20px 0; }
+  .upsell-confirm-btn {
+    width: 100%; padding: 15px; background: var(--red); border: none;
+    border-radius: var(--radius-sm); color: #fff; font-size: 16px; font-weight: 900;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(200,16,46,.35);
+  }
 
   /* ─── REVIEW SCREEN ─── */
   .review-screen {
@@ -532,10 +577,12 @@
   .btn-google-review:active { transform: scale(.97); }
   .google-icon { font-size: 20px; }
   .btn-review-skip {
-    background: none; border: none; color: rgba(255,255,255,.4); font-size: 13px;
-    font-weight: 600; cursor: pointer; padding: 10px; font-family: 'Nunito', sans-serif;
-    text-decoration: underline;
+    background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.3);
+    color: #fff; font-size: 15px; font-weight: 800; cursor: pointer;
+    padding: 13px 32px; border-radius: 50px; font-family: 'Nunito', sans-serif;
+    margin-top: 4px; transition: background .2s;
   }
+  .btn-review-skip:hover { background: rgba(255,255,255,.25); }
 
   @media (max-width: 380px) {
     .mesa-title { font-size: 34px; }
@@ -707,10 +754,25 @@
     <div class="confirm-title">¿Confirmamos el pedido?</div>
     <div class="confirm-sub" id="confirm-mesa-txt"></div>
     <div class="confirm-summary" id="confirm-summary"></div>
-    <div id="upsell-wrap"></div>
     <div class="confirm-btns">
       <button class="btn-cancel" onclick="document.getElementById('confirm-modal').classList.remove('open')">Volver</button>
-      <button class="btn-confirm" onclick="enviarPedido()">✓ Enviar pedido</button>
+      <button class="btn-confirm" onclick="mostrarUpsell()">Ver resumen →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── UPSELL OVERLAY ─── -->
+<div class="upsell-overlay" id="upsell-overlay">
+  <div class="upsell-sheet">
+    <div class="upsell-sheet-top">
+      <button class="upsell-skip-top" onclick="enviarPedido()">Saltar →</button>
+      <div class="upsell-sheet-tag">🔥 Más pedidos esta semana</div>
+      <div class="upsell-sheet-title">¿Añades algo más?</div>
+      <div class="upsell-sheet-sub">Desliza para ver lo que más piden hoy</div>
+    </div>
+    <div class="upsell-cards-wrap" id="upsell-cards"></div>
+    <div class="upsell-confirm-wrap">
+      <button class="upsell-confirm-btn" onclick="enviarPedido()">✓ Confirmar y enviar pedido</button>
     </div>
   </div>
 </div>
@@ -831,6 +893,8 @@ const GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
 let customItemId = null;
 let removedIngredients = new Set();
 let selectedMeatPoint = null;
+let mesa = '';
+let cart = {};
 
 function addToCart(id) {
   // Abre modal solo si el plato tiene opciones de personalización
@@ -1099,43 +1163,57 @@ function confirmarPedido() {
   });
   rows += `<div class="confirm-row total"><span>Total</span><span>${total.toFixed(2).replace('.',',')} €</span></div>`;
   summary.innerHTML = rows;
+  document.getElementById('confirm-modal').classList.add('open');
+}
 
-  // Upsell sutil
-  const notInCart = UPSELL_ITEMS.filter(id => !cart[id]);
-  const upsellWrap = document.getElementById('upsell-wrap');
-  if (notInCart.length) {
-    const uid = notInCart[Math.floor(Math.random() * notInCart.length)];
-    const uitem = findItem(uid);
-    if (uitem) {
-      upsellWrap.innerHTML = `
-        <div class="upsell-card">
-          <img class="upsell-img" src="${uitem.img}" alt="${uitem.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
-          <div class="upsell-info">
-            <div class="upsell-tag">🔥 Muy pedido esta semana</div>
-            <div class="upsell-name">${uitem.name}</div>
-            <div class="upsell-price">${uitem.price.toFixed(2).replace('.',',')} €</div>
-          </div>
-          <button class="upsell-add-btn" onclick="upsellAdd('${uid}')">+ Añadir</button>
-        </div>`;
-    }
-  } else {
-    upsellWrap.innerHTML = '';
+function mostrarUpsell() {
+  document.getElementById('confirm-modal').classList.remove('open');
+
+  // Platos a sugerir: los que no están en el carrito
+  const UPSELL_POOL = [
+    'tiramisú','pizza-diavola','pizza-4quesos','burrata','pannacotta',
+    'gelato','brownie','pizza-prosciutto','pasta-pesto'
+  ];
+  const suggestions = UPSELL_POOL.filter(id => !cart[id]).slice(0, 3);
+  const cardsEl = document.getElementById('upsell-cards');
+
+  if (!suggestions.length) {
+    enviarPedido(); return;
   }
 
-  document.getElementById('confirm-modal').classList.add('open');
+  cardsEl.innerHTML = suggestions.map(id => {
+    const item = findItem(id);
+    if (!item) return '';
+    return `
+      <div class="upsell-item-card">
+        <img class="upsell-item-img" src="${item.img}" alt="${item.name}"
+          onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+        <div class="upsell-item-body">
+          <div class="upsell-item-name">${item.name}</div>
+          <div class="upsell-item-desc">${item.desc.substring(0,55)}…</div>
+          <div class="upsell-item-foot">
+            <span class="upsell-item-price">${item.price.toFixed(2).replace('.',',')} €</span>
+            <button class="upsell-item-btn" id="ubtn-${id}" onclick="upsellAdd('${id}')">+ Añadir</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('upsell-overlay').classList.add('open');
 }
 
 function upsellAdd(id) {
   doAddToCart(id, new Set(), '');
-  document.getElementById('upsell-wrap').innerHTML = `<div style="text-align:center;font-size:13px;color:var(--green);font-weight:700;padding:8px 0 14px">✓ ¡Añadido al pedido!</div>`;
+  const btn = document.getElementById('ubtn-' + id);
+  if (btn) { btn.textContent = '✓ Añadido'; btn.classList.add('added'); btn.disabled = true; }
 }
 
 function enviarPedido() {
+  document.getElementById('upsell-overlay').classList.remove('open');
   document.getElementById('confirm-modal').classList.remove('open');
   cart = {};
   updateCartUI();
   renderCartItems();
-  // Mostrar pantalla de confirmación + reseña
   setTimeout(() => {
     document.getElementById('review-screen').classList.add('open');
   }, 400);
