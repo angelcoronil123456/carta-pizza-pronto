@@ -424,6 +424,119 @@
   .ask-send-btn:disabled { background: #ccc; box-shadow: none; }
   .ask-send-btn:active { transform: scale(.93); }
 
+  /* ─── MEAT COOKING POINT ─── */
+  .meat-point-wrap { margin-bottom: 20px; }
+  .meat-point-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; color: var(--text-soft); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .meat-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .meat-opt {
+    border: 2px solid #e8ddd0; border-radius: var(--radius-sm); padding: 10px 6px;
+    text-align: center; cursor: pointer; transition: all .2s; background: #faf6f1;
+  }
+  .meat-opt.selected { border-color: var(--red); background: rgba(200,16,46,.06); }
+  .meat-opt-icon { font-size: 26px; display: block; margin-bottom: 4px; }
+  .meat-opt-bar {
+    height: 6px; border-radius: 3px; margin: 6px auto 6px; width: 70%;
+    transition: background .2s;
+  }
+  .meat-poco .meat-opt-bar { background: linear-gradient(90deg, #ffb3a0, #ff7a5a); }
+  .meat-punto .meat-opt-bar { background: linear-gradient(90deg, #e05030, #b02010); }
+  .meat-muy .meat-opt-bar { background: linear-gradient(90deg, #6b2010, #3a0a05); }
+  .meat-opt-name { font-size: 12px; font-weight: 800; color: var(--text); }
+  .meat-opt-desc { font-size: 10px; color: var(--text-soft); margin-top: 2px; line-height: 1.3; }
+  .custom-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 650;
+    display: none; align-items: flex-end;
+  }
+  .custom-modal.open { display: flex; }
+  .custom-box {
+    background: #fff; border-radius: 28px 28px 0 0; width: 100%;
+    max-height: 85vh; display: flex; flex-direction: column;
+    animation: slideUp .3s ease;
+  }
+  .custom-handle { width: 40px; height: 4px; border-radius: 2px; background: #ddd; margin: 12px auto 0; flex-shrink: 0; }
+  .custom-head { padding: 14px 20px 12px; border-bottom: 1px solid #f0e8e0; flex-shrink: 0; }
+  .custom-img-wrap { position: relative; height: 140px; overflow: hidden; border-radius: 16px; margin-bottom: 10px; }
+  .custom-img { width: 100%; height: 100%; object-fit: cover; }
+  .custom-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; }
+  .custom-subtitle { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .custom-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .custom-section-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; color: var(--text-soft); margin-bottom: 10px; }
+  .ingredient-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .ingredient-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #faf6f1; border-radius: var(--radius-sm); padding: 11px 14px;
+    border: 2px solid transparent; transition: all .15s; cursor: pointer;
+  }
+  .ingredient-row.removed { background: #fff5f5; border-color: rgba(200,16,46,.2); }
+  .ingredient-row.removed .ingr-name { color: #aaa; text-decoration: line-through; }
+  .ingr-left { display: flex; align-items: center; gap: 10px; }
+  .ingr-emoji { font-size: 18px; }
+  .ingr-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .ingr-toggle {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid #ddd;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    background: #fff; transition: all .15s; flex-shrink: 0;
+  }
+  .ingredient-row.removed .ingr-toggle { background: rgba(200,16,46,.1); border-color: var(--red); color: var(--red); }
+  .custom-note-wrap { margin-bottom: 16px; }
+  .custom-note { width: 100%; background: #faf6f1; border: 1.5px solid #e8ddd0; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; font-family: 'Nunito', sans-serif; outline: none; resize: none; color: var(--text); }
+  .custom-note:focus { border-color: var(--red); }
+  .custom-footer { padding: 14px 20px; border-top: 1px solid #f0e8e0; display: flex; gap: 10px; flex-shrink: 0; }
+  .btn-custom-cancel { flex: 1; padding: 13px; background: #f0e8e0; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 800; cursor: pointer; color: var(--text-soft); }
+  .btn-custom-add { flex: 2; padding: 13px; background: var(--red); border: none; border-radius: var(--radius-sm); color: #fff; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 16px rgba(200,16,46,.3); }
+
+  /* ─── UPSELL SUGGESTION (sutil, dentro del confirm modal) ─── */
+  .upsell-card {
+    background: linear-gradient(135deg, #fff8f0, #fff0dc);
+    border: 1.5px solid rgba(244,160,28,.3); border-radius: var(--radius-sm);
+    padding: 12px 14px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .upsell-img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+  .upsell-info { flex: 1; }
+  .upsell-tag { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; color: var(--gold); }
+  .upsell-name { font-size: 13px; font-weight: 800; color: var(--text); margin-top: 1px; }
+  .upsell-price { font-size: 12px; color: var(--text-soft); }
+  .upsell-add-btn {
+    background: var(--gold); border: none; border-radius: 50px; color: var(--dark);
+    font-size: 12px; font-weight: 900; padding: 7px 13px; cursor: pointer;
+    flex-shrink: 0; transition: background .15s;
+  }
+  .upsell-add-btn:hover { background: #e09010; }
+
+  /* ─── REVIEW SCREEN ─── */
+  .review-screen {
+    position: fixed; inset: 0; z-index: 700; background: linear-gradient(160deg, #1a0a06, #3b0f15);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px 24px; text-align: center;
+  }
+  .review-screen.open { display: flex; }
+  .review-check { font-size: 72px; margin-bottom: 16px; animation: popIn .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
+  .review-title { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+  .review-sub { color: rgba(255,255,255,.65); font-size: 15px; line-height: 1.5; margin-bottom: 32px; }
+  .review-card {
+    background: rgba(255,255,255,.07); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.15); border-radius: var(--radius);
+    padding: 24px; width: 100%; max-width: 340px; margin-bottom: 16px;
+  }
+  .review-stars { font-size: 32px; letter-spacing: 4px; margin-bottom: 12px; }
+  .review-card-title { color: #fff; font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+  .review-card-desc { color: rgba(255,255,255,.6); font-size: 13px; line-height: 1.5; margin-bottom: 18px; }
+  .btn-google-review {
+    width: 100%; padding: 15px; background: #fff; border: none; border-radius: var(--radius-sm);
+    color: #1a0a06; font-size: 15px; font-weight: 900; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.3); transition: transform .1s;
+  }
+  .btn-google-review:active { transform: scale(.97); }
+  .google-icon { font-size: 20px; }
+  .btn-review-skip {
+    background: none; border: none; color: rgba(255,255,255,.4); font-size: 13px;
+    font-weight: 600; cursor: pointer; padding: 10px; font-family: 'Nunito', sans-serif;
+    text-decoration: underline;
+  }
+
   @media (max-width: 380px) {
     .mesa-title { font-size: 34px; }
     .dish-name { font-size: 12px; }
@@ -550,7 +663,7 @@
   </div>
 </div>
 
-<!-- Video modal -->
+<div class="toast" id="toast"></div>
 <div class="modal-overlay" id="video-modal">
   <div class="modal-box">
     <div class="modal-icon">🎬</div>
@@ -594,6 +707,7 @@
     <div class="confirm-title">¿Confirmamos el pedido?</div>
     <div class="confirm-sub" id="confirm-mesa-txt"></div>
     <div class="confirm-summary" id="confirm-summary"></div>
+    <div id="upsell-wrap"></div>
     <div class="confirm-btns">
       <button class="btn-cancel" onclick="document.getElementById('confirm-modal').classList.remove('open')">Volver</button>
       <button class="btn-confirm" onclick="enviarPedido()">✓ Enviar pedido</button>
@@ -601,7 +715,47 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ─── CUSTOMIZATION MODAL ─── -->
+<div class="custom-modal" id="custom-modal">
+  <div class="custom-box">
+    <div class="custom-handle"></div>
+    <div class="custom-head">
+      <div class="custom-img-wrap">
+        <img class="custom-img" id="custom-img" src="" alt="">
+      </div>
+      <div class="custom-title" id="custom-title"></div>
+      <div class="custom-subtitle">Personaliza tu plato como quieras</div>
+    </div>
+    <div class="custom-body">
+      <div class="custom-section-label">Quita lo que no quieras</div>
+      <div class="ingredient-list" id="ingredient-list"></div>
+      <div class="custom-note-wrap">
+        <div class="custom-section-label">Nota especial (opcional)</div>
+        <textarea class="custom-note" id="custom-note" rows="2" placeholder="Ej: sin sal, muy hecho, salsa aparte..."></textarea>
+      </div>
+    </div>
+    <div class="custom-footer">
+      <button class="btn-custom-cancel" onclick="closeCustom()">Cancelar</button>
+      <button class="btn-custom-add" onclick="confirmCustomAdd()">Añadir al carrito →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── REVIEW SCREEN ─── -->
+<div class="review-screen" id="review-screen">
+  <div class="review-check">✅</div>
+  <div class="review-title">¡Pedido enviado!</div>
+  <div class="review-sub">Tu pedido está en camino a la cocina.<br>En breve lo tendrás listo.</div>
+  <div class="review-card">
+    <div class="review-stars">⭐⭐⭐⭐⭐</div>
+    <div class="review-card-title">¿Te está gustando Pizza Pronto?</div>
+    <div class="review-card-desc">Tu opinión nos ayuda a mejorar y a que otros clientes nos encuentren. ¡Solo tarda 30 segundos!</div>
+    <button class="btn-google-review" onclick="abrirReseña()">
+      <span class="google-icon">G</span> Dejar reseña en Google
+    </button>
+  </div>
+  <button class="btn-review-skip" onclick="cerrarReviewScreen()">Ahora no</button>
+</div>
 
 <script>
 // ─── DATA ───────────────────────────────────────────────────────────────────
@@ -623,6 +777,7 @@ const MENU = {
   pastas: [
     { id:'pasta-carbonara', name:'Spaghetti Carbonara', desc:'Spaghetti con guanciale, huevo, parmigiano y pimienta negra. Receta tradicional romana', price:12.90, allergens:['🌾','🥚','🥛'], img:'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&q=80' },
     { id:'pasta-bolognesa', name:'Tagliatelle Bolognese', desc:'Carne de ternera y cerdo estofada 4 horas con verduras, vino tinto y especias', price:13.50, allergens:['🌾','🥛'], img:'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&q=80' },
+    { id:'tagliata', name:'Tagliata di Manzo', desc:'Entrecot de ternera a la plancha loncheado, rúcula fresca, parmigiano y reducción de balsámico', price:18.90, badge:'new', allergens:['🥛'], img:'https://images.unsplash.com/photo-1558030006-450675393462?w=400&q=80' },
     { id:'pasta-pesto', name:'Penne al Pesto', desc:'Penne rigate con pesto genovés fresco, piñones tostados y parmigiano', price:11.90, allergens:['🌾','🌰','🥛'], img:'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400&q=80' },
     { id:'pasta-arrabbiata', name:'Penne all\'Arrabbiata', desc:'Penne con salsa de tomate picante, guindilla, ajo y perejil fresco', price:11.50, allergens:['🌾'], img:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400&q=80' },
   ],
@@ -647,9 +802,149 @@ const MENU = {
 const BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
 const BADGE_CLASSES = { bestseller:'', new:'badge-new', hot:'badge-hot' };
 
-// ─── STATE ─────────────────────────────────────────────────────────────────
-let mesa = '';
-let cart = {};
+const INGREDIENTS = {
+  'bruschetta':    [{e:'🍞',n:'Pan tostado'},{e:'🍅',n:'Tomate fresco'},{e:'🧄',n:'Ajo'},{e:'🌿',n:'Albahaca'},{e:'🫒',n:'Aceite oliva'}],
+  'burrata':       [{e:'🧀',n:'Burrata'},{e:'🍅',n:'Cherry'},{e:'🌿',n:'Pesto'},{e:'🍶',n:'Balsámico'}],
+  'calamares':     [{e:'🦑',n:'Calamares'},{e:'🍋',n:'Limón'},{e:'🧄',n:'Mayonesa ajo'},{e:'🌶️',n:'Salsa picante'}],
+  'panzanella':    [{e:'🥩',n:'Mortadela'},{e:'🥓',n:'Prosciutto'},{e:'🧄',n:'Salami'},{e:'🧀',n:'Quesos curados'}],
+  'pizza-margherita': [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🌿',n:'Albahaca'}],
+  'pizza-diavola': [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🌶️',n:'Salami picante'},{e:'🔥',n:'Guindilla'}],
+  'pizza-4quesos': [{e:'🧀',n:'Mozzarella'},{e:'🫙',n:'Gorgonzola'},{e:'🧀',n:'Parmigiano'},{e:'🧀',n:'Taleggio'}],
+  'pizza-prosciutto': [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🥓',n:'Jamón serrano'},{e:'🍄',n:'Champiñones'},{e:'🫒',n:'Aceite trufa'}],
+  'pizza-veggie':  [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🫑',n:'Pimientos'},{e:'🥒',n:'Calabacín'},{e:'🍆',n:'Berenjena'},{e:'🌿',n:'Espinacas'}],
+  'pizza-pollo':   [{e:'🍅',n:'Salsa BBQ'},{e:'🧀',n:'Mozzarella'},{e:'🍗',n:'Pollo brasa'},{e:'🧅',n:'Cebolla caramelizada'},{e:'🌿',n:'Rúcula'}],
+  'pasta-carbonara': [{e:'🍝',n:'Spaghetti'},{e:'🥓',n:'Guanciale'},{e:'🥚',n:'Huevo'},{e:'🧀',n:'Parmigiano'},{e:'🌶️',n:'Pimienta negra'}],
+  'pasta-bolognesa': [{e:'🍝',n:'Tagliatelle'},{e:'🥩',n:'Carne ternera'},{e:'🐷',n:'Carne cerdo'},{e:'🍷',n:'Vino tinto'},{e:'🧀',n:'Parmigiano'}],
+  'tagliata':        [{e:'🥩',n:'Entrecot ternera'},{e:'🌿',n:'Rúcula'},{e:'🧀',n:'Parmigiano'},{e:'🍶',n:'Balsámico'},{e:'🫒',n:'Aceite oliva'}],
+  'pasta-pesto':   [{e:'🍝',n:'Penne'},{e:'🌿',n:'Pesto genovés'},{e:'🌰',n:'Piñones'},{e:'🧀',n:'Parmigiano'}],
+  'pasta-arrabbiata': [{e:'🍝',n:'Penne'},{e:'🍅',n:'Salsa tomate'},{e:'🌶️',n:'Guindilla'},{e:'🧄',n:'Ajo'},{e:'🌿',n:'Perejil'}],
+};
+
+const UPSELL_ITEMS = ['tiramisú','pizza-diavola','pizza-4quesos','burrata','pannacotta'];
+const GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
+const MEAT_ITEMS = ['tagliata','pasta-bolognesa','pizza-pollo','ensalada-cesar'];
+
+// items que muestran modal de personalización
+const CUSTOMIZABLE_CATS = ['pizzas','pastas','entrantes'];
+
+let customItemId = null;
+let removedIngredients = new Set();
+
+function shouldCustomize(id) {
+  for (const [cat, items] of Object.entries(MENU)) {
+    if (CUSTOMIZABLE_CATS.includes(cat) && items.find(i => i.id === id)) return true;
+  }
+  return false;
+}
+
+function addToCart(id) {
+  if (shouldCustomize(id) && INGREDIENTS[id]) {
+    openCustom(id);
+  } else {
+    doAddToCart(id, new Set(), '');
+  }
+}
+
+function doAddToCart(id, removed, note) {
+  if (!cart[id]) cart[id] = { qty: 0, removed: [], note: '' };
+  cart[id].qty++;
+  cart[id].removed = [...removed];
+  cart[id].note = note;
+  updateCartUI();
+  const btn = document.getElementById('btn-' + id);
+  if (btn) { btn.classList.remove('bounce'); void btn.offsetWidth; btn.classList.add('bounce'); }
+  const item = findItem(id);
+  showToast('✓ ' + item.name + ' añadido');
+}
+
+let selectedMeatPoint = null;
+
+function openCustom(id) {
+  customItemId = id;
+  removedIngredients = new Set();
+  selectedMeatPoint = null;
+  const item = findItem(id);
+  document.getElementById('custom-title').textContent = item.name;
+  document.getElementById('custom-img').src = item.img;
+  document.getElementById('custom-note').value = '';
+
+  // Meat point selector
+  const hasMeat = MEAT_ITEMS.includes(id);
+  const meatHTML = hasMeat ? `
+    <div class="meat-point-wrap">
+      <div class="meat-point-label">🥩 Punto de la carne</div>
+      <div class="meat-options">
+        <div class="meat-opt meat-poco" id="meat-poco" onclick="selectMeat('poco hecho')">
+          <span class="meat-opt-icon">🩷</span>
+          <div class="meat-opt-bar"></div>
+          <div class="meat-opt-name">Poco hecho</div>
+          <div class="meat-opt-desc">Jugoso por dentro, sellado por fuera</div>
+        </div>
+        <div class="meat-opt meat-punto" id="meat-punto" onclick="selectMeat('al punto')">
+          <span class="meat-opt-icon">❤️</span>
+          <div class="meat-opt-bar"></div>
+          <div class="meat-opt-name">Al punto</div>
+          <div class="meat-opt-desc">Rosa en el centro, perfecto equilibrio</div>
+        </div>
+        <div class="meat-opt meat-muy" id="meat-muy" onclick="selectMeat('muy hecho')">
+          <span class="meat-opt-icon">🤎</span>
+          <div class="meat-opt-bar"></div>
+          <div class="meat-opt-name">Muy hecho</div>
+          <div class="meat-opt-desc">Bien cocinado, sin sangre</div>
+        </div>
+      </div>
+    </div>
+  ` : '';
+
+  const list = document.getElementById('ingredient-list');
+  const ingrs = INGREDIENTS[id] || [];
+  list.innerHTML = meatHTML + ingrs.map((ing, i) => `
+    <div class="ingredient-row" id="ingr-${i}" onclick="toggleIngr(${i}, '${ing.n}')">
+      <div class="ingr-left">
+        <span class="ingr-emoji">${ing.e}</span>
+        <span class="ingr-name">${ing.n}</span>
+      </div>
+      <div class="ingr-toggle" id="ingr-toggle-${i}">✓</div>
+    </div>
+  `).join('');
+  document.getElementById('custom-modal').classList.add('open');
+}
+
+function selectMeat(point) {
+  selectedMeatPoint = point;
+  ['poco hecho','al punto','muy hecho'].forEach(p => {
+    const map = {'poco hecho':'meat-poco','al punto':'meat-punto','muy hecho':'meat-muy'};
+    const el = document.getElementById(map[p]);
+    if (el) el.classList.toggle('selected', p === point);
+  });
+}
+
+function toggleIngr(i, name) {
+  const row = document.getElementById('ingr-' + i);
+  const tog = document.getElementById('ingr-toggle-' + i);
+  if (removedIngredients.has(name)) {
+    removedIngredients.delete(name);
+    row.classList.remove('removed');
+    tog.textContent = '✓';
+  } else {
+    removedIngredients.add(name);
+    row.classList.add('removed');
+    tog.textContent = '✕';
+  }
+}
+
+function closeCustom() {
+  document.getElementById('custom-modal').classList.remove('open');
+}
+
+function confirmCustomAdd() {
+  let note = document.getElementById('custom-note').value.trim();
+  if (selectedMeatPoint) {
+    note = note ? `Punto: ${selectedMeatPoint}. ${note}` : `Punto: ${selectedMeatPoint}`;
+  }
+  doAddToCart(customItemId, removedIngredients, note);
+  closeCustom();
+}
 
 // ─── MESA ──────────────────────────────────────────────────────────────────
 function entrar() {
@@ -718,23 +1013,23 @@ function findItem(id) {
 }
 
 function addToCart(id) {
-  cart[id] = (cart[id] || 0) + 1;
-  updateCartUI();
-  const btn = document.getElementById('btn-' + id);
-  if (btn) { btn.classList.remove('bounce'); void btn.offsetWidth; btn.classList.add('bounce'); }
-  const item = findItem(id);
-  showToast('✓ ' + item.name + ' añadido');
+  if (shouldCustomize(id) && INGREDIENTS[id]) {
+    openCustom(id);
+  } else {
+    doAddToCart(id, new Set(), '');
+  }
 }
 
 function changeQty(id, delta) {
-  cart[id] = (cart[id] || 0) + delta;
-  if (cart[id] <= 0) delete cart[id];
+  if (!cart[id]) return;
+  cart[id].qty += delta;
+  if (cart[id].qty <= 0) delete cart[id];
   updateCartUI();
   renderCartItems();
 }
 
 function updateCartUI() {
-  const total = Object.values(cart).reduce((a,b) => a+b, 0);
+  const total = Object.values(cart).reduce((a,b) => a + b.qty, 0);
   const countEl = document.getElementById('cart-count');
   countEl.textContent = total;
   countEl.classList.toggle('show', total > 0);
@@ -751,13 +1046,19 @@ function renderCartItems() {
   }
   el.innerHTML = keys.map(id => {
     const item = findItem(id);
-    const qty = cart[id];
+    const entry = cart[id];
+    const qty = entry.qty;
+    const removed = entry.removed || [];
+    const note = entry.note || '';
+    const removedTxt = removed.length ? `<div style="font-size:11px;color:#aaa;margin-top:2px">Sin: ${removed.join(', ')}</div>` : '';
+    const noteTxt = note ? `<div style="font-size:11px;color:var(--text-soft);margin-top:1px">📝 ${note}</div>` : '';
     return `
       <div class="cart-item">
         <img class="cart-item-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-price">${(item.price * qty).toFixed(2).replace('.',',')} €</div>
+          ${removedTxt}${noteTxt}
         </div>
         <div class="qty-ctrl">
           <button class="qty-btn qty-minus" onclick="changeQty('${id}',-1)">−</button>
@@ -771,7 +1072,7 @@ function renderCartItems() {
 
 function renderCartTotal() {
   let total = 0;
-  Object.keys(cart).forEach(id => { total += findItem(id).price * cart[id]; });
+  Object.keys(cart).forEach(id => { total += findItem(id).price * cart[id].qty; });
   document.getElementById('cart-total').textContent = total.toFixed(2).replace('.',',') + ' €';
 }
 
@@ -790,13 +1091,45 @@ function confirmarPedido() {
   let rows = '';
   let total = 0;
   Object.keys(cart).forEach(id => {
-    const item = findItem(id); const qty = cart[id]; const sub = item.price * qty;
-    rows += `<div class="confirm-row"><span>${qty}× ${item.name}</span><span>${sub.toFixed(2).replace('.',',')} €</span></div>`;
+    const item = findItem(id);
+    const entry = cart[id];
+    const qty = entry.qty;
+    const sub = item.price * qty;
+    const removedTxt = entry.removed?.length ? ` <span style="font-size:11px;color:#aaa">(sin: ${entry.removed.join(', ')})</span>` : '';
+    rows += `<div class="confirm-row"><span>${qty}× ${item.name}${removedTxt}</span><span>${sub.toFixed(2).replace('.',',')} €</span></div>`;
     total += sub;
   });
   rows += `<div class="confirm-row total"><span>Total</span><span>${total.toFixed(2).replace('.',',')} €</span></div>`;
   summary.innerHTML = rows;
+
+  // Upsell sutil
+  const notInCart = UPSELL_ITEMS.filter(id => !cart[id]);
+  const upsellWrap = document.getElementById('upsell-wrap');
+  if (notInCart.length) {
+    const uid = notInCart[Math.floor(Math.random() * notInCart.length)];
+    const uitem = findItem(uid);
+    if (uitem) {
+      upsellWrap.innerHTML = `
+        <div class="upsell-card">
+          <img class="upsell-img" src="${uitem.img}" alt="${uitem.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+          <div class="upsell-info">
+            <div class="upsell-tag">🔥 Muy pedido esta semana</div>
+            <div class="upsell-name">${uitem.name}</div>
+            <div class="upsell-price">${uitem.price.toFixed(2).replace('.',',')} €</div>
+          </div>
+          <button class="upsell-add-btn" onclick="upsellAdd('${uid}')">+ Añadir</button>
+        </div>`;
+    }
+  } else {
+    upsellWrap.innerHTML = '';
+  }
+
   document.getElementById('confirm-modal').classList.add('open');
+}
+
+function upsellAdd(id) {
+  doAddToCart(id, new Set(), '');
+  document.getElementById('upsell-wrap').innerHTML = `<div style="text-align:center;font-size:13px;color:var(--green);font-weight:700;padding:8px 0 14px">✓ ¡Añadido al pedido!</div>`;
 }
 
 function enviarPedido() {
@@ -804,8 +1137,20 @@ function enviarPedido() {
   cart = {};
   updateCartUI();
   renderCartItems();
-  showToast('🎉 ¡Pedido enviado a cocina! Gracias');
-  setTimeout(() => showToast('👨‍🍳 Tu pedido llegará pronto, Mesa ' + mesa), 2500);
+  // Mostrar pantalla de confirmación + reseña
+  setTimeout(() => {
+    document.getElementById('review-screen').classList.add('open');
+  }, 400);
+}
+
+function abrirReseña() {
+  window.open(GOOGLE_REVIEW_URL, '_blank');
+  cerrarReviewScreen();
+}
+
+function cerrarReviewScreen() {
+  document.getElementById('review-screen').classList.remove('open');
+  showToast('👨‍🍳 ¡Tu pedido llegará pronto, Mesa ' + mesa + '!');
 }
 
 // ─── NAVIGATION ────────────────────────────────────────────────────────────
