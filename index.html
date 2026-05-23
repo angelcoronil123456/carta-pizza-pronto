@@ -802,43 +802,39 @@ const MENU = {
 const BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
 const BADGE_CLASSES = { bestseller:'', new:'badge-new', hot:'badge-hot' };
 
-const INGREDIENTS = {
-  'bruschetta':    [{e:'🍞',n:'Pan tostado'},{e:'🍅',n:'Tomate fresco'},{e:'🧄',n:'Ajo'},{e:'🌿',n:'Albahaca'},{e:'🫒',n:'Aceite oliva'}],
-  'burrata':       [{e:'🧀',n:'Burrata'},{e:'🍅',n:'Cherry'},{e:'🌿',n:'Pesto'},{e:'🍶',n:'Balsámico'}],
-  'calamares':     [{e:'🦑',n:'Calamares'},{e:'🍋',n:'Limón'},{e:'🧄',n:'Mayonesa ajo'},{e:'🌶️',n:'Salsa picante'}],
-  'panzanella':    [{e:'🥩',n:'Mortadela'},{e:'🥓',n:'Prosciutto'},{e:'🧄',n:'Salami'},{e:'🧀',n:'Quesos curados'}],
-  'pizza-margherita': [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🌿',n:'Albahaca'}],
-  'pizza-diavola': [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🌶️',n:'Salami picante'},{e:'🔥',n:'Guindilla'}],
-  'pizza-4quesos': [{e:'🧀',n:'Mozzarella'},{e:'🫙',n:'Gorgonzola'},{e:'🧀',n:'Parmigiano'},{e:'🧀',n:'Taleggio'}],
-  'pizza-prosciutto': [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🥓',n:'Jamón serrano'},{e:'🍄',n:'Champiñones'},{e:'🫒',n:'Aceite trufa'}],
-  'pizza-veggie':  [{e:'🍅',n:'Salsa tomate'},{e:'🧀',n:'Mozzarella'},{e:'🫑',n:'Pimientos'},{e:'🥒',n:'Calabacín'},{e:'🍆',n:'Berenjena'},{e:'🌿',n:'Espinacas'}],
-  'pizza-pollo':   [{e:'🍅',n:'Salsa BBQ'},{e:'🧀',n:'Mozzarella'},{e:'🍗',n:'Pollo brasa'},{e:'🧅',n:'Cebolla caramelizada'},{e:'🌿',n:'Rúcula'}],
-  'pasta-carbonara': [{e:'🍝',n:'Spaghetti'},{e:'🥓',n:'Guanciale'},{e:'🥚',n:'Huevo'},{e:'🧀',n:'Parmigiano'},{e:'🌶️',n:'Pimienta negra'}],
-  'pasta-bolognesa': [{e:'🍝',n:'Tagliatelle'},{e:'🥩',n:'Carne ternera'},{e:'🐷',n:'Carne cerdo'},{e:'🍷',n:'Vino tinto'},{e:'🧀',n:'Parmigiano'}],
-  'tagliata':        [{e:'🥩',n:'Entrecot ternera'},{e:'🌿',n:'Rúcula'},{e:'🧀',n:'Parmigiano'},{e:'🍶',n:'Balsámico'},{e:'🫒',n:'Aceite oliva'}],
-  'pasta-pesto':   [{e:'🍝',n:'Penne'},{e:'🌿',n:'Pesto genovés'},{e:'🌰',n:'Piñones'},{e:'🧀',n:'Parmigiano'}],
-  'pasta-arrabbiata': [{e:'🍝',n:'Penne'},{e:'🍅',n:'Salsa tomate'},{e:'🌶️',n:'Guindilla'},{e:'🧄',n:'Ajo'},{e:'🌿',n:'Perejil'}],
+// Solo ingredientes PRESCINDIBLES (lo que la gente suele quitar)
+const REMOVABLE = {
+  'pizza-margherita': [{e:'🌿',n:'Albahaca'}],
+  'pizza-diavola':    [{e:'🌶️',n:'Guindilla'},{e:'🧄',n:'Ajo'}],
+  'pizza-4quesos':    [{e:'🫙',n:'Gorgonzola'},{e:'🧀',n:'Taleggio'}],
+  'pizza-prosciutto': [{e:'🍄',n:'Champiñones'},{e:'🫒',n:'Aceite trufa'}],
+  'pizza-veggie':     [{e:'🍆',n:'Berenjena'},{e:'🫑',n:'Pimientos'},{e:'🥒',n:'Calabacín'},{e:'🌿',n:'Espinacas'}],
+  'pizza-pollo':      [{e:'🧅',n:'Cebolla caramelizada'},{e:'🌿',n:'Rúcula'}],
+  'pasta-carbonara':  [{e:'🌶️',n:'Pimienta negra'}],
+  'pasta-bolognesa':  [{e:'🧀',n:'Parmigiano'}],
+  'pasta-pesto':      [{e:'🌰',n:'Piñones'}],
+  'pasta-arrabbiata': [{e:'🌶️',n:'Guindilla'},{e:'🧄',n:'Ajo'}],
+  'tagliata':         [{e:'🌿',n:'Rúcula'},{e:'🧀',n:'Parmigiano'},{e:'🍶',n:'Balsámico'}],
+  'bruschetta':       [{e:'🧄',n:'Ajo'},{e:'🌿',n:'Albahaca'}],
+  'calamares':        [{e:'🌶️',n:'Salsa picante'}],
 };
+
+// Platos con selector de punto de carne
+const MEAT_ITEMS = ['tagliata'];
+
+// Solo estos platos abren el modal de personalización
+const CUSTOMIZABLE_IDS = Object.keys(REMOVABLE).concat(MEAT_ITEMS);
 
 const UPSELL_ITEMS = ['tiramisú','pizza-diavola','pizza-4quesos','burrata','pannacotta'];
 const GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
-const MEAT_ITEMS = ['tagliata','pasta-bolognesa','pizza-pollo','ensalada-cesar'];
-
-// items que muestran modal de personalización
-const CUSTOMIZABLE_CATS = ['pizzas','pastas','entrantes'];
 
 let customItemId = null;
 let removedIngredients = new Set();
-
-function shouldCustomize(id) {
-  for (const [cat, items] of Object.entries(MENU)) {
-    if (CUSTOMIZABLE_CATS.includes(cat) && items.find(i => i.id === id)) return true;
-  }
-  return false;
-}
+let selectedMeatPoint = null;
 
 function addToCart(id) {
-  if (shouldCustomize(id) && INGREDIENTS[id]) {
+  // Abre modal solo si el plato tiene opciones de personalización
+  if (CUSTOMIZABLE_IDS.includes(id)) {
     openCustom(id);
   } else {
     doAddToCart(id, new Set(), '');
@@ -857,8 +853,6 @@ function doAddToCart(id, removed, note) {
   showToast('✓ ' + item.name + ' añadido');
 }
 
-let selectedMeatPoint = null;
-
 function openCustom(id) {
   customItemId = id;
   removedIngredients = new Set();
@@ -868,7 +862,7 @@ function openCustom(id) {
   document.getElementById('custom-img').src = item.img;
   document.getElementById('custom-note').value = '';
 
-  // Meat point selector
+  // Selector punto carne
   const hasMeat = MEAT_ITEMS.includes(id);
   const meatHTML = hasMeat ? `
     <div class="meat-point-wrap">
@@ -884,7 +878,7 @@ function openCustom(id) {
           <span class="meat-opt-icon">❤️</span>
           <div class="meat-opt-bar"></div>
           <div class="meat-opt-name">Al punto</div>
-          <div class="meat-opt-desc">Rosa en el centro, perfecto equilibrio</div>
+          <div class="meat-opt-desc">Rosa en el centro, equilibrio perfecto</div>
         </div>
         <div class="meat-opt meat-muy" id="meat-muy" onclick="selectMeat('muy hecho')">
           <span class="meat-opt-icon">🤎</span>
@@ -893,20 +887,24 @@ function openCustom(id) {
           <div class="meat-opt-desc">Bien cocinado, sin sangre</div>
         </div>
       </div>
-    </div>
-  ` : '';
+    </div>` : '';
 
-  const list = document.getElementById('ingredient-list');
-  const ingrs = INGREDIENTS[id] || [];
-  list.innerHTML = meatHTML + ingrs.map((ing, i) => `
-    <div class="ingredient-row" id="ingr-${i}" onclick="toggleIngr(${i}, '${ing.n}')">
-      <div class="ingr-left">
-        <span class="ingr-emoji">${ing.e}</span>
-        <span class="ingr-name">${ing.n}</span>
-      </div>
-      <div class="ingr-toggle" id="ingr-toggle-${i}">✓</div>
-    </div>
-  `).join('');
+  // Ingredientes prescindibles
+  const ingrs = REMOVABLE[id] || [];
+  const ingrsHTML = ingrs.length ? `
+    <div class="custom-section-label" style="margin-bottom:10px">Quita lo que no quieras</div>
+    <div class="ingredient-list" style="margin-bottom:16px">
+      ${ingrs.map((ing, i) => `
+        <div class="ingredient-row" id="ingr-${i}" onclick="toggleIngr(${i}, '${ing.n}')">
+          <div class="ingr-left">
+            <span class="ingr-emoji">${ing.e}</span>
+            <span class="ingr-name">${ing.n}</span>
+          </div>
+          <div class="ingr-toggle" id="ingr-toggle-${i}">✓</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  document.getElementById('ingredient-list').innerHTML = meatHTML + ingrsHTML;
   document.getElementById('custom-modal').classList.add('open');
 }
 
