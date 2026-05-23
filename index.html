@@ -1011,7 +1011,7 @@ function findItem(id) {
 }
 
 function addToCart(id) {
-  if (shouldCustomize(id) && INGREDIENTS[id]) {
+  if (CUSTOMIZABLE_IDS.includes(id)) {
     openCustom(id);
   } else {
     doAddToCart(id, new Set(), '');
