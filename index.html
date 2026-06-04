@@ -497,9 +497,18 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     </div>
   </div>
   <div class="sync-indicator"><div class="sync-dot"></div>Sincronizado en tiempo real con todos los móviles de la mesa</div>
-  <div class="mesa-cart-notice">
-    <span class="mesa-cart-notice-icon">⚠️</span>
-    <span class="mesa-cart-notice-txt"><strong>Enviad cuando TODA la mesa haya terminado de pedir.</strong> Cualquiera puede pulsar el botón.</span>
+  <div class="mesa-cart-notice" style="flex-direction:column;gap:12px;padding:18px 16px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:28px">⏳</span>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:var(--dark);margin-bottom:3px">¿Ha pedido ya toda la mesa?</div>
+        <div style="font-size:13px;color:var(--dark);opacity:.8;font-weight:600;line-height:1.4">Envía el pedido cuando todos hayan elegido para que cocina prepare todo a la vez y llegue junto a la mesa.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="background:rgba(0,0,0,.08);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:6px">✅ Mejor experiencia si pedís juntos</div>
+      <div style="background:rgba(0,0,0,.08);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:6px">🍕 Todo llega a la vez a la mesa</div>
+    </div>
   </div>
   <div class="mesa-cart-body" id="mesa-cart-body"></div>
   <div class="mesa-cart-footer">
@@ -507,7 +516,29 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <span class="mesa-total-label">Total mesa</span>
       <span class="mesa-total-val" id="mesa-total-val">0,00 €</span>
     </div>
-    <button class="btn-enviar-cocina" id="btn-enviar-cocina" onclick="enviarTodoACocina()" disabled>👨‍🍳 Enviar todo a cocina</button>
+    <button class="btn-enviar-cocina" id="btn-enviar-cocina" onclick="confirmarEnvioACocina()" disabled>👨‍🍳 Enviar todo a cocina</button>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR ENVÍO A COCINA -->
+<div class="modal-overlay" id="modal-confirmar-envio" style="z-index:950">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <div style="background:linear-gradient(135deg,#1a3a0f,#0f2a08);padding:28px 24px;text-align:center">
+      <div style="font-size:56px;margin-bottom:12px">👨‍🍳</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:6px">¿Listo para enviar?</div>
+      <div style="color:rgba(255,255,255,.7);font-size:14px;line-height:1.5">Una vez enviado, el pedido va directamente a cocina y no se puede modificar.</div>
+    </div>
+    <div style="padding:20px 24px" id="resumen-envio"></div>
+    <div style="padding:0 24px 24px;display:flex;gap:10px">
+      <button onclick="document.getElementById('modal-confirmar-envio').classList.remove('open')"
+        style="flex:1;padding:14px;background:#f0e8e0;border:none;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;color:var(--text-soft)">
+        Esperar
+      </button>
+      <button onclick="document.getElementById('modal-confirmar-envio').classList.remove('open');enviarTodoACocina()"
+        style="flex:2;padding:14px;background:var(--green);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(46,125,50,.3)">
+        ✓ Sí, enviar a cocina
+      </button>
+    </div>
   </div>
 </div>
 
@@ -955,6 +986,8 @@ function doAddToCart(id,removed,note) {
   });
   const item=findItem(id);
   showToast('✓ '+(item?item.name:id)+' añadido');
+  // Registrar clic para analytics
+  registrarClic(id, 'añadir');
   resetSessionTimer();
 }
 function changeQty(id,delta) {
@@ -1168,6 +1201,29 @@ async function renderCarritoMesa() {
   document.getElementById('mesa-total-val').textContent=grandTotal.toFixed(2).replace('.',',')+' €';
   document.getElementById('btn-enviar-cocina').disabled=grandTotal===0;
 }
+async function confirmarEnvioACocina() {
+  // Mostrar resumen antes de confirmar
+  const carritos = await leerCarritosMesa();
+  let items = [], grandTotal = 0;
+  carritos.forEach(row => {
+    if (!row.carrito) return;
+    Object.entries(row.carrito).forEach(([id, entry]) => {
+      const item = findItem(id);
+      if (!item) return;
+      const sub = item.price * entry.qty;
+      grandTotal += sub;
+      items.push(`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f5eee6"><span>${entry.qty}× ${item.name}</span><span style="color:var(--red);font-weight:700">${sub.toFixed(2).replace('.',',')} €</span></div>`);
+    });
+  });
+  document.getElementById('resumen-envio').innerHTML = `
+    <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--text-soft);margin-bottom:10px">Resumen del pedido</div>
+    ${items.join('')}
+    <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:900;margin-top:10px;padding-top:10px;border-top:2px solid var(--border,#e8ddd0)">
+      <span>Total</span><span style="color:var(--red)">${grandTotal.toFixed(2).replace('.',',')} €</span>
+    </div>`;
+  document.getElementById('modal-confirmar-envio').classList.add('open');
+}
+
 async function enviarTodoACocina() {
   const btn=document.getElementById('btn-enviar-cocina');
   btn.disabled=true;btn.textContent='⏳ Enviando...';
@@ -1186,6 +1242,7 @@ async function enviarTodoACocina() {
     ticketCocina.forEach(i=>console.log(`${i.qty}x ${i.nombre}`+(i.nota?` [${i.nota}]`:'')+(i.sinIngredientes?.length?` SIN: ${i.sinIngredientes.join(', ')}`:'')+ ` — ${(i.precio*i.qty).toFixed(2)}€`));
     console.log('═══ TICKET BARRA — Mesa '+mesa+' ═══');
     ticketBarra.forEach(i=>console.log(`${i.qty}x ${i.nombre} — ${(i.precio*i.qty).toFixed(2)}€`));
+    await registrarHistorial(carritos);
     await sb.from('pedidos_mesa').delete().eq('mesa',mesa);
     mostrarPedidoEnviado();
   }catch(err){
@@ -1194,6 +1251,51 @@ async function enviarTodoACocina() {
     btn.disabled=false;btn.innerHTML='👨‍🍳 Enviar todo a cocina';
   }
 }
+async function registrarHistorial(carritos) {
+  try {
+    const registros = [];
+    carritos.forEach(row => {
+      if (!row.carrito) return;
+      Object.entries(row.carrito).forEach(([id, entry]) => {
+        const item = findItem(id);
+        if (!item) return;
+        registros.push({
+          restaurante_id: 'pizzapronto',
+          mesa: mesa,
+          plato_id: id,
+          plato_nombre: item.name,
+          cantidad: entry.qty,
+          precio_unitario: item.price,
+          categoria: Object.keys(MENU).find(cat => MENU[cat].some(p => p.id === id)) || '',
+          es_barra: item.es_barra || false,
+        });
+      });
+    });
+    if (registros.length > 0) {
+      await sb.from('pedidos_historial').insert(registros);
+      console.log('Historial guardado:', registros.length, 'platos');
+    }
+  } catch(err) {
+    console.error('Error guardando historial:', err);
+    // No bloqueamos el flujo si falla el historial
+  }
+}
+
+// Registrar clic en plato (analytics sin pedidos)
+async function registrarClic(platoId, tipo) {
+  try {
+    const item = findItem(platoId);
+    if (!item) return;
+    await sb.from('carta_clics').insert({
+      restaurante_id: 'pizzapronto',
+      plato_id: platoId,
+      plato_nombre: item.name,
+      categoria: Object.keys(MENU).find(cat => MENU[cat].some(p => p.id === platoId)) || '',
+      tipo: tipo,
+    });
+  } catch(err) { /* silencioso */ }
+}
+
 function mostrarPedidoEnviado() {
   document.getElementById('mesa-cart-screen').classList.remove('open');
   cart={};updateCartUI();actualizarBtnMesaCart();
@@ -1266,6 +1368,9 @@ function confirmCustomAdd() {
 // ══ AI CHAT ══
 function showAsk(name) {
   currentDish=name;chatHistory=[];
+  // Registrar interés en el plato
+  const item = Object.values(MENU).flat().find(i=>i.name===name);
+  if(item) registrarClic(item.id, 'pregunta_ia');
   document.getElementById('ask-dish-name').textContent=name;
   document.getElementById('ask-messages').innerHTML='';
   document.getElementById('ask-input').value='';
