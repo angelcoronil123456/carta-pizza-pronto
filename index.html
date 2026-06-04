@@ -375,7 +375,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
         <div class="header-mesa" id="header-mesa-txt">Mesa —</div>
       </div>
     </div>
-    <button class="cart-btn" onclick="toggleCart()">
+    <button class="cart-btn" onclick="abrirCarritoOBolsa()">
       🛒 Carrito
       <span class="cart-count" id="cart-count">0</span>
     </button>
@@ -698,15 +698,23 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   const cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
   const btns = document.querySelectorAll('.cat-btn');
+  // Observer más preciso: detecta qué sección ocupa el centro de la pantalla
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (e.isIntersecting) {
         const id = e.target.id.replace('sec-','');
         const idx = cats.indexOf(id);
-        if (idx >= 0) btns.forEach((b,i) => b.classList.toggle('active', i===idx));
+        if (idx >= 0) {
+          btns.forEach((b,i) => b.classList.toggle('active', i===idx));
+          // Scroll del botón activo para que se vea en el nav horizontal
+          btns[idx]?.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+        }
       }
     });
-  }, {threshold:.2, rootMargin:'-100px 0px -60% 0px'});
+  }, {
+    threshold: 0,
+    rootMargin: '-130px 0px -50% 0px'  // activa cuando el título entra en el tercio superior
+  });
   cats.forEach(c => { const el = document.getElementById('sec-'+c); if(el) observer.observe(el); });
   document.getElementById('ask-input').addEventListener('keydown', e => { if(e.key==='Enter') sendAskMessage(); });
 });
@@ -994,6 +1002,27 @@ function renderCartTotal() {
   Object.keys(cart).forEach(id=>{const item=findItem(id);if(item)total+=item.price*cart[id].qty;});
   document.getElementById('cart-total').textContent=total.toFixed(2).replace('.',',')+' €';
 }
+// Carrito inteligente: si hay items en el carrito individual, abre el drawer individual.
+// Si el carrito individual está vacío pero hay items en la mesa (Supabase), abre el carrito de mesa.
+async function abrirCarritoOBolsa() {
+  if (Object.keys(cart).length > 0) {
+    // Tiene items en su carrito individual — mostrar drawer normal
+    toggleCart();
+  } else {
+    // Carrito individual vacío — comprobar si hay items en la mesa
+    const carritos = await leerCarritosMesa();
+    let totalMesa = 0;
+    carritos.forEach(row => { if(row.carrito) Object.values(row.carrito).forEach(e => { totalMesa += e.qty||0; }); });
+    if (totalMesa > 0) {
+      // Hay items en la mesa — abrir carrito colectivo
+      abrirCarritoMesa();
+    } else {
+      // No hay nada en ningún lado — mostrar drawer vacío
+      toggleCart();
+    }
+  }
+}
+
 function toggleCart() {
   const drawer=document.getElementById('cart-drawer');
   const overlay=document.getElementById('cart-overlay');
