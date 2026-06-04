@@ -355,6 +355,10 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:50px;z-index:9999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.alergen-pill{background:#f0e8e0;border:2px solid #e8ddd0;border-radius:50px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .15s;user-select:none}
+.alergen-pill.active{background:rgba(200,16,46,.1);border-color:var(--red);color:var(--red)}
+.dish-card.alergen-warning{outline:2px solid var(--red);opacity:.55}
+.dish-card.alergen-warning::after{content:'⚠️ Contiene alérgenos';position:absolute;top:0;left:0;right:0;background:rgba(200,16,46,.85);color:#fff;font-size:10px;font-weight:900;padding:4px 8px;text-align:center;letter-spacing:.3px}
 </style>
 </head>
 <body>
@@ -401,11 +405,11 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="cat-nav-wrap">
     <nav class="cat-nav" id="cat-nav">
       <button class="cat-btn active" onclick="scrollToSection('pizzas')">🍕 Pizzas</button>
+      <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
       <button class="cat-btn" onclick="scrollToSection('pastas')">🍝 Pastas</button>
       <button class="cat-btn" onclick="scrollToSection('entrantes')">🥗 Entrantes</button>
       <button class="cat-btn" onclick="scrollToSection('ensaladas')">🥬 Ensaladas</button>
       <button class="cat-btn" onclick="scrollToSection('postres')">🍮 Postres</button>
-      <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
     </nav>
   </div>
 
@@ -414,6 +418,12 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <h2 class="section-title"><span>🍕</span> Pizzas</h2>
     <div id="hero-pizza-wrap"></div>
     <div class="dish-grid" id="grid-pizzas"></div>
+  </div>
+
+  <!-- BEBIDAS — acceso rápido justo después de pizzas -->
+  <div class="section" id="sec-bebidas">
+    <h2 class="section-title"><span>🥤</span> Bebidas</h2>
+    <div class="dish-grid" id="grid-bebidas"></div>
   </div>
 
   <!-- SEPARADOR DE URGENCIA entre secciones clave -->
@@ -452,11 +462,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="section" id="sec-postres">
     <h2 class="section-title"><span>🍮</span> Postres</h2>
     <div class="dish-grid" id="grid-postres"></div>
-  </div>
-
-  <div class="section" id="sec-bebidas">
-    <h2 class="section-title"><span>🥤</span> Bebidas</h2>
-    <div class="dish-grid" id="grid-bebidas"></div>
   </div>
 
   <div class="bottom-pad"></div>
@@ -564,6 +569,32 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="session-expired-title">Sesión caducada</div>
   <div class="session-expired-sub">Tu sesión ha expirado.<br>Escanea el QR de la mesa para continuar.</div>
   <button class="btn-reload" onclick="location.reload()">Volver a conectar</button>
+</div>
+
+<!-- BOTÓN ALÉRGENOS FIJO -->
+<div id="alergenos-btn" onclick="toggleAlergenos()" style="position:fixed;bottom:88px;left:16px;z-index:59;background:#fff;border:2px solid #e8ddd0;border-radius:50px;padding:8px 14px;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:12px;font-weight:800;color:var(--text-soft);transition:all .2s;user-select:none">
+  <span style="font-size:16px">⚠️</span> Alérgenos
+</div>
+
+<!-- PANEL ALÉRGENOS -->
+<div id="alergenos-panel" style="position:fixed;bottom:140px;left:16px;z-index:59;background:#fff;border-radius:var(--radius);padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.18);width:280px;display:none;animation:fadeSlideUp .25s ease">
+  <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:900;margin-bottom:4px">Filtro de alérgenos</div>
+  <div style="font-size:12px;color:var(--text-soft);margin-bottom:14px;line-height:1.4">Selecciona tus alergias para ver qué platos puedes pedir</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px" id="alergenos-checkboxes">
+    <div class="alergen-pill" data-val="🌾" onclick="toggleAlergenFiltro(this)">🌾 Gluten</div>
+    <div class="alergen-pill" data-val="🥛" onclick="toggleAlergenFiltro(this)">🥛 Lácteos</div>
+    <div class="alergen-pill" data-val="🥚" onclick="toggleAlergenFiltro(this)">🥚 Huevo</div>
+    <div class="alergen-pill" data-val="🌰" onclick="toggleAlergenFiltro(this)">🌰 Frutos secos</div>
+    <div class="alergen-pill" data-val="🐟" onclick="toggleAlergenFiltro(this)">🐟 Pescado</div>
+    <div class="alergen-pill" data-val="🦐" onclick="toggleAlergenFiltro(this)">🦐 Crustáceos</div>
+    <div class="alergen-pill" data-val="🍇" onclick="toggleAlergenFiltro(this)">🍇 Sulfitos</div>
+    <div class="alergen-pill" data-val="🧄" onclick="toggleAlergenFiltro(this)">🧄 Ajo</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button onclick="limpiarFiltroAlergenos()" style="flex:1;padding:9px;background:#f0e8e0;border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;color:var(--text-soft)">Limpiar</button>
+    <button onclick="aplicarFiltroAlergenos()" style="flex:2;padding:9px;background:var(--red);border:none;border-radius:10px;font-size:13px;font-weight:900;color:#fff;cursor:pointer">Aplicar filtro</button>
+  </div>
+  <div style="font-size:10px;color:var(--text-soft);text-align:center;margin-top:10px;line-height:1.4">⚠️ Consulta siempre con el camarero para confirmar alérgenos</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -727,7 +758,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   resetSessionTimer();
   actualizarBtnMesaCart();
 
-  const cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
+  const cats = ['pizzas','bebidas','pastas','entrantes','ensaladas','postres'];
   const btns = document.querySelectorAll('.cat-btn');
   // Observer más preciso: detecta qué sección ocupa el centro de la pantalla
   const observer = new IntersectionObserver(entries => {
@@ -841,7 +872,7 @@ function actualizarPlatoEnDOM(nr) {
 
 // ══ BUILD MENU (psicología de ventas aplicada) ══
 function buildMenu() {
-  const cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
+  const cats = ['pizzas','bebidas','pastas','entrantes','ensaladas','postres'];
   cats.forEach(cat => {
     const grid = document.getElementById('grid-'+cat);
     if(!grid) return;
@@ -1410,6 +1441,85 @@ async function sendAskMessage() {
 }
 
 // ══ NAVEGACIÓN ══
+// ══ ALÉRGENOS ══
+let alergenosFiltro = new Set();
+let panelAlergenosAbierto = false;
+
+function toggleAlergenos() {
+  const panel = document.getElementById('alergenos-panel');
+  const btn = document.getElementById('alergenos-btn');
+  panelAlergenosAbierto = !panelAlergenosAbierto;
+  panel.style.display = panelAlergenosAbierto ? 'block' : 'none';
+  btn.style.background = panelAlergenosAbierto ? 'var(--red)' : '#fff';
+  btn.style.color = panelAlergenosAbierto ? '#fff' : 'var(--text-soft)';
+  btn.style.borderColor = panelAlergenosAbierto ? 'var(--red)' : '#e8ddd0';
+}
+
+function toggleAlergenFiltro(el) {
+  el.classList.toggle('active');
+}
+
+function limpiarFiltroAlergenos() {
+  document.querySelectorAll('.alergen-pill').forEach(p => p.classList.remove('active'));
+  alergenosFiltro.clear();
+  // Quitar warnings de todas las tarjetas
+  document.querySelectorAll('.dish-card').forEach(card => card.classList.remove('alergen-warning'));
+  const btn = document.getElementById('alergenos-btn');
+  btn.style.background = '#fff';
+  btn.style.color = 'var(--text-soft)';
+  btn.style.borderColor = '#e8ddd0';
+  btn.innerHTML = '<span style="font-size:16px">⚠️</span> Alérgenos';
+  panelAlergenosAbierto = false;
+  document.getElementById('alergenos-panel').style.display = 'none';
+}
+
+function aplicarFiltroAlergenos() {
+  alergenosFiltro.clear();
+  document.querySelectorAll('.alergen-pill.active').forEach(p => {
+    alergenosFiltro.add(p.dataset.val);
+  });
+
+  if (alergenosFiltro.size === 0) {
+    limpiarFiltroAlergenos();
+    return;
+  }
+
+  // Marcar platos que contienen los alérgenos seleccionados
+  let marcados = 0;
+  document.querySelectorAll('.dish-card').forEach(card => {
+    const id = card.id.replace('card-','');
+    const item = findItem(id);
+    if (!item) return;
+    const allergens = item.allergens || [];
+    const tieneAlergen = allergens.some(a => alergenosFiltro.has(a));
+    card.classList.toggle('alergen-warning', tieneAlergen);
+    if (tieneAlergen) marcados++;
+  });
+
+  // Actualizar botón con contador
+  const btn = document.getElementById('alergenos-btn');
+  btn.style.background = 'var(--red)';
+  btn.style.color = '#fff';
+  btn.style.borderColor = 'var(--red)';
+  btn.innerHTML = `<span style="font-size:16px">⚠️</span> ${marcados} platos con alérgenos`;
+
+  // Cerrar panel
+  document.getElementById('alergenos-panel').style.display = 'none';
+  panelAlergenosAbierto = false;
+
+  showToast(`⚠️ ${marcados} platos contienen tus alérgenos`);
+}
+
+// Cerrar panel al tocar fuera
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('alergenos-panel');
+  const btn = document.getElementById('alergenos-btn');
+  if (panelAlergenosAbierto && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+    panelAlergenosAbierto = false;
+  }
+});
+
 function scrollToSection(id) {
   const el=document.getElementById('sec-'+id);
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
