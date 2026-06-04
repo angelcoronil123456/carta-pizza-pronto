@@ -1046,9 +1046,10 @@ function confirmarPedido() {
   document.getElementById('confirm-summary').innerHTML=rows;
   document.getElementById('confirm-modal').classList.add('open');
 }
-function pasarACarritoMesa() {
+async function pasarACarritoMesa() {
   document.getElementById('confirm-modal').classList.remove('open');
-  guardarCarritoEnMesa();
+  // Guardar en Supabase antes de ir al upsell
+  await guardarCarritoEnMesa();
   mostrarUpsell();
 }
 function mostrarUpsell() {
@@ -1077,23 +1078,42 @@ function upsellAdd(id) {
   const btn=document.getElementById('ubtn-'+id);
   if(btn){btn.textContent='✓ Añadido';btn.classList.add('added');btn.disabled=true;}
 }
-function cerrarUpsellYMesa() {
+async function cerrarUpsellYMesa() {
   document.getElementById('upsell-overlay').classList.remove('open');
-  guardarCarritoEnMesa();
-  cart={};updateCartUI();renderCartItems();
+  // Esperar a que se guarde en Supabase ANTES de vaciar el carrito local
+  await guardarCarritoEnMesa();
+  cart = {};
+  updateCartUI();
+  renderCartItems();
   abrirCarritoMesa();
 }
 
 // ══ SUPABASE — CARRITO MESA ══
 async function guardarCarritoEnMesa() {
-  if(!mesa||!Object.keys(cart).length) return;
+  if (!mesa || !Object.keys(cart).length) return;
   resetSessionTimer();
   try {
-    const {data:existing}=await sb.from('pedidos_mesa').select('id').eq('mesa',mesa).eq('client_id',clientId).single();
-    if(existing){await sb.from('pedidos_mesa').update({carrito:cart,updated_at:new Date().toISOString()}).eq('id',existing.id);}
-    else{await sb.from('pedidos_mesa').insert({mesa,client_id:clientId,carrito:cart});}
+    // Buscar si ya existe sin usar .single() para evitar errores
+    const { data: rows } = await sb.from('pedidos_mesa')
+      .select('id')
+      .eq('mesa', mesa)
+      .eq('client_id', clientId)
+      .limit(1);
+
+    if (rows && rows.length > 0) {
+      // Actualizar registro existente
+      await sb.from('pedidos_mesa')
+        .update({ carrito: cart, updated_at: new Date().toISOString() })
+        .eq('id', rows[0].id);
+    } else {
+      // Crear nuevo registro
+      await sb.from('pedidos_mesa')
+        .insert({ mesa: mesa, client_id: clientId, carrito: cart });
+    }
     actualizarBtnMesaCart();
-  }catch(err){console.error('Error guardando carrito:',err);}
+  } catch(err) {
+    console.error('Error guardando carrito:', err);
+  }
 }
 async function leerCarritosMesa() {
   try{const{data}=await sb.from('pedidos_mesa').select('*').eq('mesa',mesa);return data||[];}catch{return[];}
