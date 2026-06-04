@@ -503,14 +503,16 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   </div>
   <div class="sync-indicator"><div class="sync-dot"></div>Sincronizado en tiempo real con todos los móviles de la mesa</div>
   <div class="mesa-cart-notice" style="flex-direction:column;gap:10px;padding:16px">
-    <div style="font-size:15px;font-weight:900;color:var(--dark);line-height:1.4">
-      Asegúrate de que todos han terminado de elegir
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="font-size:15px;font-weight:900;color:var(--dark);line-height:1.4">
+        Asegúrate de que todos han terminado de elegir
+      </div>
+      <div style="font-size:11px;color:var(--dark);opacity:.5;font-weight:600;font-style:italic;text-align:right;flex-shrink:0;max-width:110px;line-height:1.3">
+        "Para que todo llegue a la vez"
+      </div>
     </div>
     <div style="font-size:13px;color:var(--dark);opacity:.8;font-weight:600;line-height:1.6">
       Si estás solo puedes enviarlo ahora mismo, si sois varios esperad a que todos hayan añadido sus platos antes de pulsar. Solo hace falta que lo pulse uno. ¡La carta sigue abierta para volver a pedir cuando queráis!
-    </div>
-    <div style="font-size:12px;color:var(--dark);opacity:.6;font-weight:600;line-height:1.5;margin-top:2px">
-      Así conseguimos que todo llegue a la mesa a la vez y podamos ofreceros un mejor servicio.
     </div>
   </div>
   <div class="mesa-cart-body" id="mesa-cart-body"></div>
@@ -752,7 +754,13 @@ const MAS_PEDIDOS = ['pizza-diavola','pizza-4quesos','tiramisú','pasta-carbonar
 
 // ══ ESTADO ══
 let MENU = {};
-let mesa = '', clientId = 'c_' + Math.random().toString(36).substr(2,9);
+let mesa = '';
+// clientId persiste durante la sesión de pestaña — evita carritos huérfanos al recargar
+let clientId = sessionStorage.getItem('cartaClientId');
+if (!clientId) {
+  clientId = 'c_' + Math.random().toString(36).substr(2,9) + '_' + Date.now();
+  sessionStorage.setItem('cartaClientId', clientId);
+}
 let cart = {}, sessionTimer = null;
 let customItemId = null, removedIngredients = new Set(), selectedMeatPoint = null;
 let currentDish = null, chatHistory = [];
@@ -774,6 +782,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   initSupabaseRealtime();
   iniciarPolling();
   resetSessionTimer();
+  // Limpiar carrito propio al entrar — cada escaneo de QR empieza desde cero
+  await limpiarCarritoPropio();
   actualizarBtnMesaCart();
 
   const cats = ['pizzas','bebidas','pastas','entrantes','ensaladas','postres'];
@@ -1028,7 +1038,8 @@ function doAddToCart(id,removed,note) {
   cart[id].removed=[...removed];
   cart[id].note=note;
   updateCartUI();
-  guardarCarritoEnMesa();
+  // NO guardamos en Supabase aquí — el carrito vive en memoria del móvil
+  // Solo se guarda cuando el cliente pulsa "Ver carrito de mesa"
   ['btn-'+id,'btn-hero-'+id].forEach(btnId=>{
     const btn=document.getElementById(btnId);
     if(btn){btn.classList.remove('bounce');void btn.offsetWidth;btn.classList.add('bounce');}
@@ -1041,14 +1052,14 @@ function doAddToCart(id,removed,note) {
 }
 function changeQty(id,delta) {
   if(!cart[id]) return;
-  cart[id].qty+=delta;
-  if(cart[id].qty<=0) delete cart[id];
+  const nuevaQty=(cart[id].qty||0)+delta;
+  if(nuevaQty<0) return;
+  cart[id].qty=nuevaQty; // se queda en 0 sin borrarse — gris y recuperable
   updateCartUI();
-  guardarCarritoEnMesa();
   renderCartItems();
 }
 function updateCartUI() {
-  const total=Object.values(cart).reduce((a,b)=>a+b.qty,0);
+  const total=Object.values(cart).reduce((a,b)=>a+(b.qty>0?b.qty:0),0);
   const countEl=document.getElementById('cart-count');
   countEl.textContent=total;
   countEl.classList.toggle('show',total>0);
@@ -1062,18 +1073,23 @@ function renderCartItems() {
   el.innerHTML=keys.map(id=>{
     const item=findItem(id);if(!item)return'';
     const entry=cart[id];
+    const qty=entry.qty||0;
+    const esCero=qty===0;
     const removedTxt=entry.removed?.length?`<div style="font-size:11px;color:#aaa;margin-top:2px">Sin: ${entry.removed.join(', ')}</div>`:'';
     const noteTxt=entry.note?`<div style="font-size:11px;color:var(--text-soft);margin-top:1px">📝 ${entry.note}</div>`:'';
-    return`<div class="cart-item">
-      <img class="cart-item-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+    return`<div class="cart-item" style="${esCero?'opacity:.45':''}">
+      <img class="cart-item-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'" style="${esCero?'filter:grayscale(1)':''}">
       <div class="cart-item-info">
-        <div class="cart-item-name">${item.name}</div>
-        <div class="cart-item-price">${(item.price*entry.qty).toFixed(2).replace('.',',')} €</div>
+        <div class="cart-item-name" style="${esCero?'text-decoration:line-through;color:#aaa':''}">${item.name}</div>
+        ${esCero
+          ?`<div style="font-size:11px;color:var(--red);font-weight:700;margin-top:2px">Eliminado · pulsa + para añadir</div>`
+          :`<div class="cart-item-price">${(item.price*qty).toFixed(2).replace('.',',')} €</div>`
+        }
         ${removedTxt}${noteTxt}
       </div>
       <div class="qty-ctrl">
-        <button class="qty-btn qty-minus" onclick="changeQty('${id}',-1)">−</button>
-        <span class="qty-num">${entry.qty}</span>
+        <button class="qty-btn qty-minus" onclick="changeQty('${id}',-1)" ${esCero?'disabled style="opacity:.3;cursor:not-allowed"':''}>−</button>
+        <span class="qty-num" style="${esCero?'opacity:.4':''}">${qty}</span>
         <button class="qty-btn qty-plus" onclick="changeQty('${id}',1)">+</button>
       </div>
     </div>`;
@@ -1081,13 +1097,14 @@ function renderCartItems() {
 }
 function renderCartTotal() {
   let total=0;
-  Object.keys(cart).forEach(id=>{const item=findItem(id);if(item)total+=item.price*cart[id].qty;});
+  Object.keys(cart).forEach(id=>{const item=findItem(id);if(item&&cart[id].qty>0)total+=item.price*cart[id].qty;});
   document.getElementById('cart-total').textContent=total.toFixed(2).replace('.',',')+' €';
 }
 // Carrito inteligente: si hay items en el carrito individual, abre el drawer individual.
 // Si el carrito individual está vacío pero hay items en la mesa (Supabase), abre el carrito de mesa.
 async function abrirCarritoOBolsa() {
-  if (Object.keys(cart).length > 0) {
+  const itemsConQty = Object.values(cart).some(e => e.qty > 0);
+  if (itemsConQty) {
     // Tiene items en su carrito individual — mostrar drawer normal
     toggleCart();
   } else {
@@ -1162,7 +1179,8 @@ function upsellAdd(id) {
 }
 async function cerrarUpsellYMesa() {
   document.getElementById('upsell-overlay').classList.remove('open');
-  // Esperar a que se guarde en Supabase ANTES de vaciar el carrito local
+  // AQUÍ es el único momento en que guardamos en Supabase
+  // El cliente ha confirmado su pedido y pasa al carrito colectivo
   await guardarCarritoEnMesa();
   cart = {};
   updateCartUI();
@@ -1171,8 +1189,43 @@ async function cerrarUpsellYMesa() {
 }
 
 // ══ SUPABASE — CARRITO MESA ══
+// Limpia el carrito de este cliente al entrar — cada escaneo empieza desde cero
+async function limpiarCarritoPropio() {
+  try {
+    // Comprobar si ya hemos limpiado en esta sesión de pestaña
+    // Evita limpiar el carrito si el cliente simplemente recargó la página
+    const yaLimpiado = sessionStorage.getItem('cartaLimpiado_' + mesa);
+    
+    if (!yaLimpiado) {
+      // Primera vez que entra con esta pestaña: limpiar carrito propio
+      await sb.from('pedidos_mesa')
+        .delete()
+        .eq('mesa', mesa)
+        .eq('client_id', clientId);
+
+      // Limpiar carritos huérfanos de esta mesa (más de 2h sin actividad)
+      // Cubre el caso de clientes anteriores que no enviaron el pedido
+      const hace2horas = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+      await sb.from('pedidos_mesa')
+        .delete()
+        .eq('mesa', mesa)
+        .lt('updated_at', hace2horas);
+
+      // Marcar que ya hemos limpiado en esta sesión de pestaña
+      sessionStorage.setItem('cartaLimpiado_' + mesa, '1');
+    }
+
+    cart = {};
+    updateCartUI();
+  } catch(err) {
+    console.error('Error limpiando carrito:', err);
+  }
+}
+
 async function guardarCarritoEnMesa() {
-  if (!mesa || !Object.keys(cart).length) return;
+  // Filtrar platos en cero antes de guardar
+  const cartParaGuardar = Object.fromEntries(Object.entries(cart).filter(([,e]) => e.qty > 0));
+  if (!mesa || !Object.keys(cartParaGuardar).length) return;
   resetSessionTimer();
   try {
     // Buscar si ya existe sin usar .single() para evitar errores
@@ -1190,7 +1243,7 @@ async function guardarCarritoEnMesa() {
     } else {
       // Crear nuevo registro
       await sb.from('pedidos_mesa')
-        .insert({ mesa: mesa, client_id: clientId, carrito: cart });
+        .insert({ mesa: mesa, client_id: clientId, carrito: cartParaGuardar });
     }
     actualizarBtnMesaCart();
   } catch(err) {
@@ -1207,12 +1260,52 @@ async function actualizarBtnMesaCart() {
   document.getElementById('mesa-cart-badge').textContent=total;
   document.getElementById('mesa-cart-btn').classList.toggle('visible',total>0);
 }
+let carritoMesaTimer = null;
+const CARRITO_MESA_TIMEOUT = 30 * 60 * 1000; // 30 minutos
+
 async function abrirCarritoMesa() {
   resetSessionTimer();
+  // Si el cliente tiene platos en su carrito individual pendientes de guardar,
+  // los guardamos en Supabase ahora — cubre el caso del botón flotante
+  // y del botón del carrito arriba que lleva al carrito de mesa
+  const itemsConQty = Object.values(cart).some(e => e.qty > 0);
+  if (itemsConQty) {
+    await guardarCarritoEnMesa();
+    cart = {};
+    updateCartUI();
+    renderCartItems();
+  }
   document.getElementById('mesa-cart-screen').classList.add('open');
   await renderCarritoMesa();
+  iniciarTimerCarritoMesa();
 }
-function cerrarCarritoMesa(){document.getElementById('mesa-cart-screen').classList.remove('open');}
+
+function iniciarTimerCarritoMesa() {
+  clearTimeout(carritoMesaTimer);
+  carritoMesaTimer = setTimeout(async () => {
+    try {
+      // Borrar carrito de esta mesa tras 30 min de inactividad
+      await sb.from('pedidos_mesa').delete().eq('mesa', mesa);
+      // Resetear sessionStorage para que el próximo cliente empiece limpio
+      sessionStorage.removeItem('cartaLimpiado_' + mesa);
+      sessionStorage.removeItem('cartaClientId');
+      // Cerrar carrito y mostrar mensaje
+      document.getElementById('mesa-cart-screen').classList.remove('open');
+      cart = {}; updateCartUI(); actualizarBtnMesaCart();
+      showToast('⏱️ El carrito se ha reiniciado por inactividad');
+    } catch(err) { console.error('Error limpiando carrito por inactividad:', err); }
+  }, CARRITO_MESA_TIMEOUT);
+}
+
+function reiniciarTimerCarritoMesa() {
+  // Reinicia el timer cada vez que hay actividad en el carrito colectivo
+  if (carritoMesaTimer) iniciarTimerCarritoMesa();
+}
+function cerrarCarritoMesa() {
+  document.getElementById('mesa-cart-screen').classList.remove('open');
+  clearTimeout(carritoMesaTimer);
+  carritoMesaTimer = null;
+}
 async function renderCarritoMesa() {
   const carritos=await leerCarritosMesa();
   const body=document.getElementById('mesa-cart-body');
@@ -1227,14 +1320,27 @@ async function renderCarritoMesa() {
     const esYo=row.client_id===clientId;
     const label=esYo?'👤 Tú':`👤 Comensal ${idx++}`;
     let subtotal=0;
+    const esPropio=row.client_id===clientId;
     const itemsHTML=Object.entries(row.carrito).map(([id,entry])=>{
       const item=findItem(id);if(!item)return'';
-      const sub=item.price*entry.qty;subtotal+=sub;grandTotal+=sub;
+      const qty=entry.qty||0;
+      const sub=item.price*qty;
+      if(qty>0){subtotal+=sub;grandTotal+=sub;}
       const noteTxt=entry.note?`<div class="comensal-item-note">📝 ${entry.note}</div>`:'';
       const removedTxt=entry.removed?.length?`<div class="comensal-item-note">Sin: ${entry.removed.join(', ')}</div>`:'';
-      return`<div class="comensal-item">
-        <div><div class="comensal-item-name">${entry.qty}× ${item.name}</div>${noteTxt}${removedTxt}</div>
-        <div class="comensal-item-price">${sub.toFixed(2).replace('.',',')} €</div>
+      const esCero=qty===0;
+      return`<div class="comensal-item" style="${esCero?'opacity:.4':''}">
+        <div style="flex:1">
+          <div class="comensal-item-name" style="${esCero?'text-decoration:line-through;color:#aaa':''}">${item.name}</div>
+          ${noteTxt}${removedTxt}
+          ${esCero?`<div style="font-size:10px;color:var(--red);font-weight:700;margin-top:2px">Eliminado · pulsa + para añadir de nuevo</div>`:''}
+        </div>
+        ${esPropio?`
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
+          <button onclick="cambiarQtyMesa('${id}',-1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #e0d5ca;background:#faf6f1;font-size:14px;font-weight:900;cursor:pointer;color:var(--text-soft)">−</button>
+          <span style="font-size:14px;font-weight:900;min-width:18px;text-align:center;${esCero?'opacity:.4':''}">${qty}</span>
+          <button onclick="cambiarQtyMesa('${id}',1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--red);background:rgba(200,16,46,.06);font-size:14px;font-weight:900;cursor:pointer;color:var(--red)">+</button>
+        </div>`:`<div class="comensal-item-price" style="${esCero?'text-decoration:line-through;color:#aaa':''}">${sub.toFixed(2).replace('.',',')} €</div>`}
       </div>`;
     }).join('');
     if(!itemsHTML.trim())return;
@@ -1300,6 +1406,42 @@ async function enviarTodoACocina() {
     btn.disabled=false;btn.innerHTML='👨‍🍳 Enviar todo a cocina';
   }
 }
+async function cambiarQtyMesa(platoId, delta) {
+  // Solo modifica el carrito propio
+  try {
+    const { data: rows } = await sb.from('pedidos_mesa')
+      .select('id, carrito')
+      .eq('mesa', mesa)
+      .eq('client_id', clientId)
+      .limit(1);
+    if (!rows || !rows.length) return;
+    const carritoActual = rows[0].carrito || {};
+    if (!carritoActual[platoId]) return;
+
+    const nuevaQty = (carritoActual[platoId].qty || 0) + delta;
+
+    if (nuevaQty < 0) return; // no puede ir por debajo de 0
+
+    if (nuevaQty === 0) {
+      // Dejar en 0 pero no borrar — queda transparente para poder recuperar
+      carritoActual[platoId].qty = 0;
+    } else {
+      carritoActual[platoId].qty = nuevaQty;
+    }
+
+    // Si todos los platos están en 0, borrar el registro completo
+    const todosEnCero = Object.values(carritoActual).every(e => e.qty === 0);
+    if (todosEnCero) {
+      await sb.from('pedidos_mesa').delete().eq('id', rows[0].id);
+    } else {
+      await sb.from('pedidos_mesa')
+        .update({ carrito: carritoActual, updated_at: new Date().toISOString() })
+        .eq('id', rows[0].id);
+    }
+    await renderCarritoMesa();
+  } catch(err) { console.error('Error cambiando qty:', err); }
+}
+
 async function registrarHistorial(carritos) {
   try {
     const registros = [];
@@ -1347,6 +1489,8 @@ async function registrarClic(platoId, tipo) {
 
 function mostrarPedidoEnviado() {
   document.getElementById('mesa-cart-screen').classList.remove('open');
+  sessionStorage.removeItem('cartaLimpiado_' + mesa);
+  sessionStorage.removeItem('cartaClientId');
   cart={};updateCartUI();actualizarBtnMesaCart();
   const SUGS=['tiramisú','gelato','brownie','pannacotta','cerveza','cafe'];
   document.getElementById('sugerencias-post').innerHTML=SUGS.slice(0,4).map(id=>{
@@ -1367,7 +1511,16 @@ function cerrarReviewScreen(){document.getElementById('review-screen').classList
 // ══ SESIÓN ══
 function resetSessionTimer() {
   clearTimeout(sessionTimer);
-  sessionTimer=setTimeout(()=>document.getElementById('session-expired').classList.add('open'),SESSION_TIMEOUT);
+  sessionTimer = setTimeout(async () => {
+    // Sesión caducada: limpiar carrito en Supabase y sessionStorage
+    try {
+      await sb.from('pedidos_mesa').delete().eq('mesa', mesa).eq('client_id', clientId);
+    } catch(e) {}
+    sessionStorage.removeItem('cartaLimpiado_' + mesa);
+    sessionStorage.removeItem('cartaClientId');
+    cart = {}; updateCartUI();
+    document.getElementById('session-expired').classList.add('open');
+  }, SESSION_TIMEOUT);
 }
 
 // ══ CUSTOMIZACIÓN ══
