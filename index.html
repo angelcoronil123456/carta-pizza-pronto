@@ -130,8 +130,8 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
 /* ── POSTRE SPOTLIGHT ── */
 .postre-spotlight{margin:20px 16px 0;border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,#2d0a1e,#1a0a06);position:relative}
-.postre-spotlight-img{width:100%;height:160px;object-fit:cover;opacity:.6;display:block}
-.postre-overlay{position:absolute;inset:0;padding:20px;display:flex;flex-direction:column;justify-content:flex-end}
+.postre-spotlight-img{width:100%;height:200px;object-fit:cover;opacity:.5;display:block}
+.postre-overlay{position:absolute;inset:0;padding:16px 20px 20px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(to top, rgba(26,10,6,.95) 40%, rgba(26,10,6,.2) 100%)}
 .postre-tag{background:rgba(244,160,28,.9);color:var(--dark);font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;display:inline-block;margin-bottom:8px;width:fit-content}
 .postre-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:4px;line-height:1.2}
 .postre-sub{color:rgba(255,255,255,.7);font-size:12px;margin-bottom:12px}
@@ -175,6 +175,8 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 /* ── MESA CART ── */
 .mesa-cart-btn{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:60;background:var(--dark);color:#fff;border:none;border-radius:50px;padding:14px 28px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 6px 28px rgba(0,0,0,.4);display:none;align-items:center;gap:10px;white-space:nowrap;transition:transform .15s}
 .mesa-cart-btn.visible{display:flex}
+.mesa-cart-btn.visible ~ #alergenos-btn{bottom:80px}
+.mesa-cart-btn.visible ~ #alergenos-panel{bottom:136px}
 .mesa-cart-btn:active{transform:translateX(-50%) scale(.96)}
 .mesa-cart-badge{background:var(--gold);color:var(--dark);font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .mesa-cart-screen{position:fixed;inset:0;z-index:900;background:var(--cream);display:none;flex-direction:column;animation:fadeSlideUp .3s ease}
@@ -581,12 +583,12 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 </div>
 
 <!-- BOTÓN ALÉRGENOS FIJO -->
-<div id="alergenos-btn" onclick="toggleAlergenos()" style="position:fixed;bottom:88px;left:16px;z-index:59;background:#fff;border:2px solid #e8ddd0;border-radius:50px;padding:9px 16px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.13);font-size:13px;font-weight:800;color:var(--text-soft);transition:all .2s;user-select:none">
+<div id="alergenos-btn" onclick="toggleAlergenos()" style="position:fixed;bottom:24px;left:16px;z-index:59;background:#fff;border:2px solid #e8ddd0;border-radius:50px;padding:9px 16px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.13);font-size:13px;font-weight:800;color:var(--text-soft);transition:all .2s;user-select:none">
   <span style="font-size:18px">🙋</span> ¿Eres alérgico a algo?
 </div>
 
 <!-- PANEL ALÉRGENOS -->
-<div id="alergenos-panel" style="position:fixed;bottom:148px;left:16px;z-index:59;background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);width:300px;display:none;animation:fadeSlideUp .25s ease">
+<div id="alergenos-panel" style="position:fixed;bottom:80px;left:16px;z-index:59;background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);width:300px;display:none;animation:fadeSlideUp .25s ease">
   <div style="font-size:18px;margin-bottom:6px">🙋 ¿Tienes alguna alergia?</div>
   <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:900;margin-bottom:6px;color:var(--dark)">Cuéntanos y filtramos la carta</div>
   <div style="font-size:12px;color:var(--text-soft);margin-bottom:16px;line-height:1.5">Marca lo que no puedes comer y te avisaremos en qué platos aparece</div>
@@ -846,8 +848,12 @@ function initSupabaseRealtime() {
   sb.channel('mesa-'+mesa)
     .on('postgres_changes',{event:'*',schema:'public',table:'pedidos_mesa',filter:`mesa=eq.${mesa}`},(payload)=>{
       actualizarBtnMesaCart();
-      if(document.getElementById('mesa-cart-screen').classList.contains('open')) renderCarritoMesa();
-      if(payload.eventType==='DELETE') mostrarPedidoEnviado();
+      if(payload.eventType==='DELETE'){
+        // Tanto el que envió como los demás móviles de la mesa ven la confirmación
+        mostrarPedidoEnviado();
+      } else {
+        if(document.getElementById('mesa-cart-screen').classList.contains('open')) renderCarritoMesa();
+      }
     }).subscribe();
 
   sb.channel('carta-realtime')
