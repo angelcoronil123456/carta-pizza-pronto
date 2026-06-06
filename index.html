@@ -1066,7 +1066,6 @@ function doAddToCart(id,removed,note) {
   showToast('✓ '+(item?item.name:id)+' añadido');
   // Registrar clic para analytics
   registrarClic(id, 'añadir');
-  showMaridajeToast(id);
   resetSessionTimer();
 }
 function changeQty(id,delta) {
