@@ -936,7 +936,7 @@ function buildMenu() {
         </div>
         <div class="dish-body">
           <div class="dish-name">${item.name}</div>
-          <div class="dish-desc">${item.desc}</div>
+          ${item.desc && item.desc.length >= 10 ? `<div class="dish-desc">${item.desc}</div>` : ''}
           ${allergens}
           <div class="dish-ask" onclick="showAsk('${item.name}')">💬 ¿Tienes alguna duda?</div>
         </div>
@@ -962,6 +962,12 @@ function buildMenu() {
 
   // Postre spotlight
   buildPostreSpotlight();
+
+  // Scroll suave al primer plato hero de pizzas tras 200ms
+  setTimeout(() => {
+    const primerHero = document.querySelector('#hero-pizza-wrap .dish-hero');
+    if (primerHero) primerHero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 200);
 }
 
 function buildHeroPlato(wrapId, cat) {
@@ -971,11 +977,16 @@ function buildHeroPlato(wrapId, cat) {
   const items = MENU[cat]||[];
   const hero = items.find(i=>i.badge==='hot') || items.find(i=>i.badge==='bestseller') || items[0];
   if(!hero) return;
+  // Badge señuelo: si el precio del hero supera la media de su categoría
+  const precioMedio = items.reduce((a,b) => a + b.price, 0) / items.length;
+  const esChef = hero.price > precioMedio;
+
   wrap.innerHTML=`
     <div class="dish-hero" style="animation-delay:0s" onclick="">
       <div style="position:relative;overflow:hidden">
         <img class="dish-hero-img" src="${hero.img}" alt="${hero.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
         ${hero.badge?`<div class="dish-badge badge-${hero.badge}" style="top:12px;left:12px;font-size:11px">${hero.badge==='hot'?'🔥':hero.badge==='new'?'✨':'⭐'} ${BADGE_LABELS[hero.badge]}</div>`:''}
+        ${esChef?`<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;letter-spacing:.3px">👨‍🍳 Elección del chef</div>`:''}
 
       </div>
       <div class="dish-hero-body">
@@ -1015,7 +1026,14 @@ function buildPostreSpotlight() {
   if(!el||!img||!nombre||!btn) return;
   img.src = estrella.img;
   nombre.textContent = estrella.name + ' — ' + estrella.price.toFixed(2).replace('.',',') + ' €';
+  const unidadesRestantes = Math.floor(Math.random() * 5) + 3; // entre 3 y 7
   btn.onclick = () => { addToCart(estrella.id); showToast('✓ ' + estrella.name + ' añadido'); };
+
+  // Añadir urgencia junto al botón
+  const urgenciaEl = document.createElement('div');
+  urgenciaEl.style.cssText = 'font-size:12px;font-weight:800;color:#ff3d5a;margin-top:10px;display:flex;align-items:center;gap:5px';
+  urgenciaEl.innerHTML = `⏳ Solo quedan ${unidadesRestantes}`;
+  btn.parentElement.appendChild(urgenciaEl);
   el.style.display = 'block';
 }
 
@@ -1048,6 +1066,7 @@ function doAddToCart(id,removed,note) {
   showToast('✓ '+(item?item.name:id)+' añadido');
   // Registrar clic para analytics
   registrarClic(id, 'añadir');
+  showMaridajeToast(id);
   resetSessionTimer();
 }
 function changeQty(id,delta) {
@@ -1745,6 +1764,22 @@ function showToast(msg){
   el.textContent=msg;el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+function showMaridajeToast(platoId) {
+  const cat = Object.keys(MENU).find(c => MENU[c].some(p => p.id === platoId));
+  if (cat !== 'pizzas' && cat !== 'pastas') return;
+  const bebidas = MENU['bebidas'] || [];
+  if (!bebidas.length) return;
+  const masBarata = bebidas.reduce((a,b) => a.price <= b.price ? a : b);
+  const el = document.getElementById('toast');
+  el.innerHTML = `🍺 ¿Lo acompañas? Una ${masBarata.name} le va genial <button onclick="doAddToCart('${masBarata.id}',new Set(),'');document.getElementById('toast').classList.remove('show')" style="background:#fff;border:none;border-radius:20px;color:var(--red);font-size:11px;font-weight:900;padding:3px 10px;margin-left:6px;cursor:pointer">Añadir →</button>`;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    el.innerHTML = '';
+  }, 4000);
 }
 </script>
 </body>
