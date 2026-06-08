@@ -994,7 +994,7 @@ function buildMenu() {
       const allergens = (item.allergens||[]).length ? `<div class="allergens">${(item.allergens||[]).map(a=>`<span class="allergen" title="${allergenLabel(a)}">${a}</span>`).join('')}</div>` : '';
       card.innerHTML=`
         <div class="dish-img-wrap">
-          <img class="dish-img" src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+          <img class="dish-img" src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.onerror=null">
           ${badgeHTML}
           ${countBadge}
           <div class="video-btn" onclick="showVideo('${item.name}')">
@@ -1051,7 +1051,7 @@ function buildHeroPlato(wrapId, cat) {
   wrap.innerHTML=`
     <div class="dish-hero" style="animation-delay:0s" onclick="">
       <div style="position:relative;overflow:hidden">
-        <img class="dish-hero-img" src="${hero.img}" alt="${hero.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+        <img class="dish-hero-img" src="${hero.img}" alt="${hero.name}" onerror="this.onerror=null">
         ${hero.badge?`<div class="dish-badge badge-${hero.badge}" style="top:12px;left:12px;font-size:11px">${hero.badge==='hot'?'🔥':hero.badge==='new'?'✨':'⭐'} ${BADGE_LABELS[hero.badge]}</div>`:''}
         ${esChef?`<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;letter-spacing:.3px">👨‍🍳 Elección del chef</div>`:''}
 
@@ -1163,7 +1163,7 @@ function renderCartItems() {
     const removedTxt=entry.removed?.length?`<div style="font-size:11px;color:#aaa;margin-top:2px">Sin: ${entry.removed.join(', ')}</div>`:'';
     const noteTxt=entry.note?`<div style="font-size:11px;color:var(--text-soft);margin-top:1px">📝 ${entry.note}</div>`:'';
     return`<div class="cart-item" style="${esCero?'opacity:.45':''}">
-      <img class="cart-item-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'" style="${esCero?'filter:grayscale(1)':''}">
+      <img class="cart-item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null" style="${esCero?'filter:grayscale(1)':''}">
       <div class="cart-item-info">
         <div class="cart-item-name" style="${esCero?'text-decoration:line-through;color:#aaa':''}">${item.name}</div>
         ${esCero
@@ -1244,7 +1244,7 @@ function mostrarUpsell() {
   document.getElementById('upsell-cards').innerHTML=suggestions.map(id=>{
     const item=findItem(id);
     return`<div class="upsell-item-card">
-      <img class="upsell-item-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+      <img class="upsell-item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null">
       <div class="upsell-item-body">
         <div class="upsell-item-name">${item.name}</div>
         <div class="upsell-item-desc">${item.desc.substring(0,55)}…</div>
@@ -1581,7 +1581,7 @@ function mostrarPedidoEnviado() {
   document.getElementById('sugerencias-post').innerHTML=SUGS.slice(0,4).map(id=>{
     const item=findItem(id);if(!item)return'';
     return`<div class="sug-chip" onclick="sugerirAnadir('${id}')">
-      <img class="sug-chip-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+      <img class="sug-chip-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null">
       <div class="sug-chip-name">${item.name}</div>
       <div class="sug-chip-price">${item.price.toFixed(2).replace('.',',')} €</div>
     </div>`;
@@ -1721,37 +1721,34 @@ function cerrarAsistente() {
   document.getElementById('asistente-overlay').classList.remove('open');
 }
 
-// Detectar platos mencionados en la respuesta y añadir botones de acción
 function procesarRespuestaConBotones(texto) {
-  let html = texto;
-  const todosLosPlatos = Object.values(MENU).flat();
+  var todosLosPlatos = Object.values(MENU).flat();
+  var textoLower = texto.toLowerCase();
+  var platosEncontrados = todosLosPlatos.filter(function(item) {
+    var n = item.name.toLowerCase();
+    return textoLower.indexOf(n) >= 0;
+  }).slice(0, 3);
+  if (!platosEncontrados.length) return '';
+  var html = '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">';
+  platosEncontrados.forEach(function(item) {
+    var precio = item.price.toFixed(2).replace('.',',') + ' €';
+    html += '<div class="chat-plato-card">';
+    html += '<img class="chat-plato-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">';
+    html += '<div class="chat-plato-info">';
+    html += '<div class="chat-plato-name">' + item.name + '</div>';
+    html += '<div class="chat-plato-price">' + precio + '</div>';
+    html += '</div>';
+    html += '<button class="chat-plato-btn" id="chat-btn-' + item.id + '" onclick="chatGuardar(\'' + item.id + '\')">🔖 Guardar</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
 
-  // Buscar platos mencionados en el texto
-  const platosEncontrados = todosLosPlatos.filter(item => {
-    const nombreLower = item.name.toLowerCase();
-    const textoLower = texto.toLowerCase();
-    return textoLower.includes(nombreLower) ||
-           textoLower.includes(nombreLower.split(' ')[0].toLowerCase());
-  }).slice(0, 3); // máximo 3 botones
-
-  let botonesHTML = '';
-  if (platosEncontrados.length > 0) {
-    botonesHTML = '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">' +
-      platosEncontrados.map(item => `
-        <div class="chat-plato-card">
-          <img class="chat-plato-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
-          <div class="chat-plato-info">
-            <div class="chat-plato-name">${item.name}</div>
-            <div class="chat-plato-price">${item.price.toFixed(2).replace('.',',')} €</div>
-          </div>
-          <button class="chat-plato-btn" id="chat-btn-${item.id}" onclick="añadirDesdChat('${item.id}')">
-            + Añadir
-          </button>
-        </div>`).join('') +
-      '</div>';
-  }
-
-  return { html, botonesHTML };
+function chatGuardar(id) {
+  if (!listaGuardados[id]) toggleGuardar(id);
+  var btn = document.getElementById('chat-btn-' + id);
+  if (btn) { btn.textContent = '✓ Guardado'; btn.style.background = 'var(--green)'; btn.disabled = true; }
 }
 
 function añadirDesdChat(id) {
@@ -1769,12 +1766,8 @@ function appendAsistenteMsg(texto, esUsuario = false, conBotones = false) {
   if (esUsuario) {
     el.innerHTML += `<div class="msg user"><div class="msg-bubble">${texto}</div><div class="msg-avatar user-av">👤</div></div>`;
   } else {
-    let botonesHTML = '';
-    if (conBotones) {
-      const resultado = procesarRespuestaConBotones(texto);
-      botonesHTML = resultado.botonesHTML;
-    }
-    el.innerHTML += `<div class="msg ai"><div class="msg-avatar">🍕</div><div><div class="msg-bubble">${texto}</div>${botonesHTML}</div></div>`;
+    var botonesHTML = conBotones ? procesarRespuestaConBotones(html) : '';
+    el.innerHTML += '<div class="msg ai"><div class="msg-avatar">🍕</div><div><div class="msg-bubble">' + html + '</div>' + botonesHTML + '</div></div>';
   }
   el.scrollTop = el.scrollHeight;
 }
@@ -1794,9 +1787,7 @@ function enviarPreguntaRapida(pregunta) {
 }
 
 function generarContextoCarta() {
-  let contexto = 'Esta es la carta completa del restaurante:
-
-';
+  var contexto = 'Esta es la carta completa del restaurante:\n\n';
   Object.entries(MENU).forEach(([cat, items]) => {
     if (!items.length) return;
     contexto += `## ${cat.toUpperCase()}
@@ -1806,11 +1797,9 @@ function generarContextoCarta() {
       if (item.desc && item.desc.length > 5) contexto += ` | ${item.desc}`;
       if (item.allergens && item.allergens.length) contexto += ` | Alérgenos: ${item.allergens.join(' ')}`;
       if (item.badge) contexto += ` | ${item.badge==='hot'?'🔥 Más pedido':item.badge==='bestseller'?'⭐ Popular':'✨ Nuevo'}`;
-      contexto += '
-';
+      contexto += '\n';
     });
-    contexto += '
-';
+    contexto += '\n';
   });
   return contexto;
 }
