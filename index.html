@@ -1682,11 +1682,12 @@ async function sendAskMessage() {
   appendUserMsg(text);chatHistory.push({role:'user',content:text});showTyping();
   const sensitive=SENSITIVE_KW.some(k=>text.toLowerCase().includes(k));
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,
+    const res=await fetch('https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia',{
+      method:'POST',headers:{'Content-Type':'application/json','apikey':'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX'},
+      body:JSON.stringify({
         system:`Eres el asistente virtual de Pizza Pronto. El cliente pregunta sobre: "${currentDish}". Responde amable, breve y útil (máximo 3 frases). Español. Tono cálido.`,
-        messages:chatHistory.slice(-6)})
+        messages:chatHistory.slice(-6)
+      })
     });
     const data=await res.json();removeTyping();
     const reply=data.content?.[0]?.text||'Lo siento, no pude responder. ¡Pregunta al camarero!';
@@ -1823,12 +1824,10 @@ Cuando recomiendes platos, menciona SIEMPRE el nombre exacto del plato tal como 
 Si te preguntan por alérgenos, sé muy preciso y recomienda confirmar con el camarero.
 Cuando recomiendes platos, menciona el precio.
 ${contextoCarta}`;
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
         system: systemPrompt,
         messages: asistenteChatHistory.slice(-8)
       })
